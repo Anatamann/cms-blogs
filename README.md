@@ -123,6 +123,7 @@ Draft posts are never listed or reachable by public slug.
 
 | Feature | Behavior |
 |---------|----------|
+| **Views** | Simple integer on each post; +1 once per browser session per post |
 | **Reactions** | 👍 🔥 💜 😮 — toggle per visitor (session); counts on the post |
 | **Comments** | Name + optional email + body; **pending until approved** in Admin → Comments |
 

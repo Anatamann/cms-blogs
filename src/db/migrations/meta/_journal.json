@@ -15,6 +15,13 @@
       "when": 1721400000001,
       "tag": "0001_comments_reactions",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1721400000002,
+      "tag": "0002_post_view_count",
+      "breakpoints": true
     }
   ]
 }

@@ -40,6 +40,8 @@ const posts = sqliteTable(
     authorId: text('author_id')
       .notNull()
       .references(() => users.id, { onDelete: 'restrict' }),
+    /** Public view counter (simple integer; see incrementViewCount). */
+    viewCount: integer('view_count').notNull().default(0),
     publishedAt: text('published_at'),
     createdAt: text('created_at')
       .notNull()

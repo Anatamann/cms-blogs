@@ -236,6 +236,22 @@ function getById(id) {
 }
 
 /**
+ * Increment public view counter.
+ * @param {string} id post UUID
+ * @returns {number|null} new count, or null if missing
+ */
+function incrementViewCount(id) {
+  if (!id) return null;
+  const db = getDb();
+  db.update(posts)
+    .set({ viewCount: sql`COALESCE(${posts.viewCount}, 0) + 1` })
+    .where(eq(posts.id, id))
+    .run();
+  const row = db.select({ viewCount: posts.viewCount }).from(posts).where(eq(posts.id, id)).get();
+  return row ? row.viewCount : null;
+}
+
+/**
  * @param {{
  *   title: string,
  *   slug?: string,
@@ -270,6 +286,7 @@ async function createPost(input) {
       bodyMd: input.bodyMd || '',
       status,
       authorId: input.authorId,
+      viewCount: 0,
       publishedAt,
       createdAt: ts,
       updatedAt: ts,
@@ -385,6 +402,7 @@ module.exports = {
   listPosts,
   getBySlug,
   getById,
+  incrementViewCount,
   createPost,
   updatePost,
   deletePost,

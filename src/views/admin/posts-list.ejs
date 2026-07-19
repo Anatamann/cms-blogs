@@ -23,6 +23,7 @@
       <th>Title</th>
       <th>Slug</th>
       <th>Status</th>
+      <th>Views</th>
       <th>Updated</th>
       <th></th>
     </tr>
@@ -33,6 +34,7 @@
       <td><a href="<%= paths.admin.postEdit(p.id) %>"><%= p.title %></a></td>
       <td><code><%= p.slug %></code></td>
       <td><span class="status-pill status-<%= p.status %>"><%= p.status %></span></td>
+      <td class="muted"><%= p.viewCount || 0 %></td>
       <td class="muted"><%= formatDate(p.updatedAt) %></td>
       <td class="admin-row-actions">
         <a href="<%= paths.admin.postPreview(p.id) %>">Preview</a>

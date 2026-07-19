@@ -43,6 +43,7 @@ function presentPost(post) {
     excerpt,
     bodyHtml: renderMarkdown(post.bodyMd),
     publishedLabel: formatDate(post.publishedAt || post.createdAt),
+    viewCount: Number(post.viewCount) || 0,
     url: paths.post(post.slug),
   };
 }
@@ -163,7 +164,25 @@ function blogPost(req, res, next) {
     return next();
   }
 
-  const presented = presentPost(post);
+  // Simple view counter: once per browser session per post (avoids refresh spam)
+  let viewCount = Number(post.viewCount) || 0;
+  if (req.session) {
+    if (!req.session.viewedPosts) req.session.viewedPosts = [];
+    if (!req.session.viewedPosts.includes(post.id)) {
+      const next = postsService.incrementViewCount(post.id);
+      if (next != null) viewCount = next;
+      req.session.viewedPosts.push(post.id);
+      // Cap array growth for long sessions
+      if (req.session.viewedPosts.length > 200) {
+        req.session.viewedPosts = req.session.viewedPosts.slice(-100);
+      }
+    }
+  } else {
+    const next = postsService.incrementViewCount(post.id);
+    if (next != null) viewCount = next;
+  }
+
+  const presented = presentPost({ ...post, viewCount });
   const meta = siteMeta();
   const visitorKey = req.session?.visitorId || null;
   const comments = commentsService.listApprovedForPost(post.id).map((c) => ({

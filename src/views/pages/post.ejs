@@ -15,6 +15,7 @@
       <time datetime="<%= post.publishedAt || post.createdAt %>"><%= post.publishedLabel %></time>
       <% } %>
       <% if (post.author) { %> · <%= post.author.displayName %><% } %>
+      · <span class="view-count" title="Views (once per browser session)"><%= post.viewCount || 0 %> view<%= (post.viewCount || 0) === 1 ? '' : 's' %></span>
     </p>
   </header>
 
