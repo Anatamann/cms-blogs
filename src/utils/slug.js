@@ -117,7 +117,10 @@ const paths = {
     /** Admin edit uses UUID id (stable if slug changes). */
     postEdit: (id) => `/admin/posts/${id}/edit`,
     postDelete: (id) => `/admin/posts/${id}/delete`,
+    /** Saved post preview (by UUID). */
     postPreview: (id) => `/admin/posts/${id}/preview`,
+    /** Form preview — current editor fields, not saved to DB. */
+    postPreviewForm: () => '/admin/posts/preview',
     media: () => '/admin/media',
     mediaUpload: () => '/admin/media/upload',
     mediaDelete: (id) => `/admin/media/${id}/delete`,

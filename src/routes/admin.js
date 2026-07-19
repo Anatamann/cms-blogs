@@ -37,6 +37,13 @@ router.post('/logout', verifyCsrf, adminController.logout);
 
 router.get('/posts', adminController.postsList);
 router.get('/posts/new', adminController.postNewGet);
+// Form preview (create or unsaved edit) — must be registered before /posts/:id/*
+router.post(
+  '/posts/preview',
+  writeLimiter,
+  verifyCsrf,
+  adminController.postPreviewForm
+);
 router.post('/posts', writeLimiter, verifyCsrf, adminController.postCreate);
 
 router.get('/posts/:id/edit', adminController.postEditGet);

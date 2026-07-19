@@ -3,8 +3,9 @@
 <% 
   var selectedCats = typeof selectedCategoryIds !== 'undefined' ? selectedCategoryIds : (post.categories || []).map(function (c) { return c.id; });
   var selectedTags = typeof selectedTagIds !== 'undefined' ? selectedTagIds : (post.tags || []).map(function (t) { return t.id; });
-  var formAction = mode === 'create' ? paths.admin.postNew().replace(/\/new$/, '') /* /admin/posts */ : paths.admin.postEdit(post.id);
-  if (mode === 'create') formAction = paths.admin.posts();
+  var formAction = mode === 'create' ? paths.admin.posts() : paths.admin.postEdit(post.id);
+  var newCatsVal = typeof newCategories !== 'undefined' ? newCategories : '';
+  var newTagsVal = typeof newTags !== 'undefined' ? newTags : '';
 %>
 
 <header class="admin-page-header admin-page-header--row">
@@ -15,14 +16,13 @@
       ID <code><%= post.id %></code>
       · public <code>/blog/<%= post.slug %></code>
     </p>
+    <% } else { %>
+    <p class="muted">Use <strong>Preview</strong> to see the rendered post without saving.</p>
     <% } %>
   </div>
-  <% if (mode === 'edit') { %>
+  <% if (mode === 'edit' && post.status === 'published') { %>
   <div class="admin-actions">
-    <a class="btn btn-ghost" href="<%= paths.admin.postPreview(post.id) %>">Preview</a>
-    <% if (post.status === 'published') { %>
     <a class="btn btn-ghost" href="<%= paths.post(post.slug) %>" target="_blank" rel="noopener">View public</a>
-    <% } %>
   </div>
   <% } %>
 </header>
@@ -31,12 +31,16 @@
 <p class="flash flash-error" role="alert"><%= error %></p>
 <% } %>
 
-<form method="post" action="<%= formAction %>" class="admin-form post-form">
+<form method="post" action="<%= formAction %>" class="admin-form post-form" id="post-editor-form">
   <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+  <input type="hidden" name="_mode" value="<%= mode %>" />
+  <% if (mode === 'edit') { %>
+  <input type="hidden" name="_postId" value="<%= post.id %>" />
+  <% } %>
 
   <div class="field">
     <label for="title">Title</label>
-    <input id="title" name="title" type="text" required maxlength="200" value="<%= post.title %>" />
+    <input id="title" name="title" type="text" maxlength="200" value="<%= post.title %>" />
   </div>
 
   <div class="field-row">
@@ -96,7 +100,7 @@
       <% }) %>
     </div>
     <label class="field-sub" for="newCategories">Add categories (comma-separated)</label>
-    <input id="newCategories" name="newCategories" type="text" placeholder="e.g. Spoilers, OVA" />
+    <input id="newCategories" name="newCategories" type="text" placeholder="e.g. Spoilers, OVA" value="<%= newCatsVal %>" />
   </fieldset>
 
   <fieldset class="field">
@@ -110,11 +114,18 @@
       <% }) %>
     </div>
     <label class="field-sub" for="newTags">Add tags (comma-separated)</label>
-    <input id="newTags" name="newTags" type="text" placeholder="e.g. isekai, 90s" />
+    <input id="newTags" name="newTags" type="text" placeholder="e.g. isekai, 90s" value="<%= newTagsVal %>" />
   </fieldset>
 
   <div class="admin-actions">
     <button type="submit" class="btn btn-primary">Save</button>
+    <button
+      type="submit"
+      class="btn btn-ghost"
+      formaction="<%= paths.admin.postPreviewForm() %>"
+      formmethod="post"
+      formnovalidate
+    >Preview</button>
     <a class="btn btn-ghost" href="<%= paths.admin.posts() %>">Cancel</a>
   </div>
 </form>

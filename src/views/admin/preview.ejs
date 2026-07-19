@@ -2,30 +2,42 @@
 
 <header class="admin-page-header admin-page-header--row">
   <div>
-    <h1>Preview</h1>
+    <h1>Preview<% if (isFormPreview) { %> <span class="status-pill status-pending">unsaved</span><% } %></h1>
     <p class="lead">
       <%= post.title %>
-      <% if (isDraft) { %><span class="status-pill status-draft">draft</span><% } %>
+      <% if (isDraft) { %><span class="status-pill status-draft">draft</span><% } else { %><span class="status-pill status-published">published</span><% } %>
     </p>
   </div>
   <div class="admin-actions">
-    <a class="btn btn-ghost" href="<%= paths.admin.postEdit(post.id) %>">Edit</a>
-    <% if (!isDraft) { %>
-    <a class="btn btn-primary" href="<%= post.url %>" target="_blank" rel="noopener">Open public</a>
+    <a class="btn btn-primary" href="<%= backHref || (post.id ? paths.admin.postEdit(post.id) : paths.admin.postNew()) %>">
+      <%= isFormPreview ? 'Back to editor' : 'Edit' %>
+    </a>
+    <% if (!isFormPreview && !isDraft && post.slug) { %>
+    <a class="btn btn-ghost" href="<%= post.url %>" target="_blank" rel="noopener">Open public</a>
     <% } %>
   </div>
 </header>
+
+<% if (isFormPreview) { %>
+<p class="flash flash-ok" role="status">
+  This is a live preview of the form — <strong>not saved</strong> yet. Use “Back to editor” to keep editing, then Save.
+</p>
+<% } %>
 
 <article class="admin-preview prose">
   <p class="muted">
     Public URL would be <code><%= post.url %></code>
     <% if (isDraft) { %> (not public until published)<% } %>
+    <% if (isFormPreview) { %> · slug may change when you save<% } %>
   </p>
   <h1 class="post-page__title"><%= post.title %></h1>
   <p class="post-card__meta">
     <% if (post.publishedLabel) { %><%= post.publishedLabel %><% } %>
     <% if (post.author) { %> · <%= post.author.displayName %><% } %>
   </p>
+  <% if (post.excerpt) { %>
+  <p class="lead"><%= post.excerpt %></p>
+  <% } %>
   <div class="prose">
     <%- post.bodyHtml %>
   </div>

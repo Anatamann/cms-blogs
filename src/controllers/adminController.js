@@ -188,22 +188,54 @@ function postsList(req, res) {
   });
 }
 
-function postNewGet(_req, res) {
+function takeFormDraft(req, mode, postId) {
+  const draft = req.session?.postFormDraft;
+  if (!draft) return null;
+  if (draft.mode !== mode) return null;
+  if (mode === 'edit' && draft.postId !== postId) return null;
+  return draft;
+}
+
+function clearFormDraft(req) {
+  if (req.session) delete req.session.postFormDraft;
+}
+
+function postNewGet(req, res) {
+  const draft = takeFormDraft(req, 'create');
+  const post = draft
+    ? {
+        title: draft.title || '',
+        slug: draft.slug || '',
+        excerpt: draft.excerpt || '',
+        bodyMd: draft.bodyMd || '',
+        status: draft.status || 'draft',
+        categories: [],
+        tags: [],
+      }
+    : {
+        title: '',
+        slug: '',
+        excerpt: '',
+        bodyMd: '',
+        status: 'draft',
+        categories: [],
+        tags: [],
+      };
+
+  // One-time restore after preview; clear so refresh stays clean
+  if (draft) clearFormDraft(req);
+
   res.render('admin/post-form', {
     title: 'New post',
     mode: 'create',
-    post: {
-      title: '',
-      slug: '',
-      excerpt: '',
-      bodyMd: '',
-      status: 'draft',
-      categories: [],
-      tags: [],
-    },
+    post,
     categories: categoriesService.listCategories(),
     tags: tagsService.listTags(),
     error: null,
+    selectedCategoryIds: draft?.categoryIds || [],
+    selectedTagIds: draft?.tagIds || [],
+    newCategories: draft?.newCategories || '',
+    newTags: draft?.newTags || '',
   });
 }
 
@@ -236,6 +268,7 @@ async function postCreate(req, res) {
       tagIds,
     });
 
+    clearFormDraft(req);
     req.flash('ok', `Post “${post.title}” created.`);
     return res.redirect(paths.admin.postEdit(post.id));
   } catch (err) {
@@ -259,15 +292,31 @@ function postEditGet(req, res, next) {
   const post = postsService.getById(id);
   if (!post) return next();
 
+  const draft = takeFormDraft(req, 'edit', id);
+  if (draft) clearFormDraft(req);
+
+  const formPost = draft
+    ? {
+        ...post,
+        title: draft.title,
+        slug: draft.slug,
+        excerpt: draft.excerpt,
+        bodyMd: draft.bodyMd,
+        status: draft.status,
+      }
+    : post;
+
   res.render('admin/post-form', {
-    title: `Edit: ${post.title}`,
+    title: `Edit: ${formPost.title}`,
     mode: 'edit',
-    post,
+    post: formPost,
     categories: categoriesService.listCategories(),
     tags: tagsService.listTags(),
     error: null,
-    selectedCategoryIds: (post.categories || []).map((c) => c.id),
-    selectedTagIds: (post.tags || []).map((t) => t.id),
+    selectedCategoryIds: draft?.categoryIds || (post.categories || []).map((c) => c.id),
+    selectedTagIds: draft?.tagIds || (post.tags || []).map((t) => t.id),
+    newCategories: draft?.newCategories || '',
+    newTags: draft?.newTags || '',
   });
 }
 
@@ -308,6 +357,7 @@ async function postUpdate(req, res, next) {
       updateSlug: data.updateSlug,
     });
 
+    clearFormDraft(req);
     req.flash('ok', `Post “${post.title}” saved.`);
     return res.redirect(paths.admin.postEdit(id));
   } catch (err) {
@@ -332,8 +382,83 @@ function postDelete(req, res, next) {
   if (!existing) return next();
 
   postsService.deletePost(id);
+  clearFormDraft(req);
   req.flash('ok', `Deleted “${existing.title}”.`);
   res.redirect(paths.admin.posts());
+}
+
+/**
+ * Preview current form fields without saving (create or edit).
+ * Stores draft in session so "Back to editor" restores fields.
+ */
+function postPreviewForm(req, res) {
+  const data = parsePostBody(req);
+  const mode = req.body._mode === 'edit' ? 'edit' : 'create';
+  const postId = isValidId(req.body._postId) ? req.body._postId : null;
+
+  if (mode === 'edit' && !postId) {
+    req.flash('error', 'Missing post id for edit preview.');
+    return res.redirect(paths.admin.posts());
+  }
+
+  const categoryIds = asArray(req.body.categoryIds).filter(isValidId);
+  const tagIds = asArray(req.body.tagIds).filter(isValidId);
+  const newCategories = String(req.body.newCategories || '');
+  const newTags = String(req.body.newTags || '');
+
+  req.session.postFormDraft = {
+    mode,
+    postId,
+    title: data.title,
+    slug: data.slug,
+    excerpt: data.excerpt,
+    bodyMd: data.bodyMd,
+    status: data.status,
+    updateSlug: data.updateSlug,
+    categoryIds,
+    tagIds,
+    newCategories,
+    newTags,
+  };
+
+  const slugGuess =
+    slugify(data.slug || data.title || '') || (mode === 'edit' && postId
+      ? postsService.getById(postId)?.slug
+      : null) ||
+    'untitled';
+
+  const bodyHtml = renderMarkdown(data.bodyMd || '');
+  const excerpt = data.excerpt || plainExcerpt(data.bodyMd || '');
+  const author = req.session.user
+    ? {
+        id: req.session.user.id,
+        displayName: req.session.user.displayName,
+        username: req.session.user.username,
+      }
+    : null;
+
+  const backHref =
+    mode === 'edit' && postId ? paths.admin.postEdit(postId) : paths.admin.postNew();
+
+  req.session.save(() => {
+    res.render('admin/preview', {
+      title: `Preview: ${data.title || 'Untitled'}`,
+      post: {
+        id: postId,
+        title: data.title || 'Untitled',
+        slug: slugGuess,
+        excerpt,
+        bodyHtml,
+        status: data.status,
+        publishedLabel: formatDate(new Date().toISOString()),
+        author,
+        url: paths.post(slugGuess),
+      },
+      isDraft: data.status !== 'published',
+      isFormPreview: true,
+      backHref,
+    });
+  });
 }
 
 function postPreview(req, res, next) {
@@ -356,6 +481,8 @@ function postPreview(req, res, next) {
       url: paths.post(post.slug),
     },
     isDraft: post.status !== 'published',
+    isFormPreview: false,
+    backHref: paths.admin.postEdit(post.id),
   });
 }
 
@@ -426,6 +553,7 @@ module.exports = {
   postUpdate,
   postDelete,
   postPreview,
+  postPreviewForm,
   settingsGet,
   settingsPost,
   commentsList,
