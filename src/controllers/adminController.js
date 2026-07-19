@@ -1,0 +1,395 @@
+'use strict';
+
+const config = require('../config');
+const usersService = require('../services/users');
+const postsService = require('../services/posts');
+const categoriesService = require('../services/categories');
+const tagsService = require('../services/tags');
+const settingsService = require('../services/settings');
+const { paths, slugify, isValidSlug } = require('../utils/slug');
+const { isValidId } = require('../utils/uuid');
+const { renderMarkdown, plainExcerpt } = require('../utils/markdown');
+const { formatDate } = require('../utils/format');
+
+function asArray(value) {
+  if (value == null || value === '') return [];
+  return Array.isArray(value) ? value : [value];
+}
+
+/**
+ * Resolve category/tag checkboxes + optional new names.
+ * @param {import('express').Request} req
+ */
+async function resolveTaxonomies(req) {
+  const categoryIds = asArray(req.body.categoryIds).filter(isValidId);
+  const tagIds = asArray(req.body.tagIds).filter(isValidId);
+
+  const newCategories = String(req.body.newCategories || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  for (const name of newCategories) {
+    const existing = categoriesService.getBySlug(slugify(name));
+    if (existing) {
+      if (!categoryIds.includes(existing.id)) categoryIds.push(existing.id);
+      continue;
+    }
+    try {
+      const created = await categoriesService.createCategory({ name });
+      categoryIds.push(created.id);
+    } catch {
+      // skip invalid reserved names
+    }
+  }
+
+  const newTags = String(req.body.newTags || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  for (const name of newTags) {
+    const existing = tagsService.getBySlug(slugify(name));
+    if (existing) {
+      if (!tagIds.includes(existing.id)) tagIds.push(existing.id);
+      continue;
+    }
+    try {
+      const created = await tagsService.createTag({ name });
+      tagIds.push(created.id);
+    } catch {
+      // skip invalid
+    }
+  }
+
+  return { categoryIds, tagIds };
+}
+
+function parsePostBody(req) {
+  const title = String(req.body.title || '').trim();
+  const slug = String(req.body.slug || '').trim();
+  const excerpt = String(req.body.excerpt || '').trim();
+  const bodyMd = String(req.body.bodyMd || '');
+  const status = req.body.status === 'published' ? 'published' : 'draft';
+  const updateSlug = req.body.updateSlug === '1' || req.body.updateSlug === 'on';
+
+  return { title, slug, excerpt, bodyMd, status, updateSlug };
+}
+
+function loginForm(req, res) {
+  res.render('admin/login', {
+    title: 'Admin Login',
+    error: null,
+    username: '',
+  });
+}
+
+async function loginSubmit(req, res) {
+  const username = String(req.body.username || '').trim();
+  const password = String(req.body.password || '');
+
+  const user = await usersService.authenticate(username, password);
+  if (!user) {
+    return res.status(401).render('admin/login', {
+      title: 'Admin Login',
+      error: 'Invalid username or password.',
+      username,
+    });
+  }
+
+  req.session.user = user;
+  const returnTo = req.session.returnTo || paths.admin.home();
+  delete req.session.returnTo;
+
+  req.session.save(() => {
+    res.redirect(returnTo);
+  });
+}
+
+function logout(req, res) {
+  req.session.destroy(() => {
+    res.redirect(paths.admin.login());
+  });
+}
+
+function dashboard(_req, res) {
+  const published = postsService.listPosts({ status: 'published', limit: 5 });
+  const drafts = postsService.listPosts({ status: 'draft', limit: 5 });
+  const all = postsService.listPosts({ status: 'all', limit: 1 });
+
+  res.render('admin/dashboard', {
+    title: 'Dashboard',
+    stats: {
+      total: all.total,
+      published: published.total,
+      drafts: drafts.total,
+      categories: categoriesService.listCategories().length,
+      tags: tagsService.listTags().length,
+    },
+    recentPublished: published.items,
+    recentDrafts: drafts.items,
+    formatDate,
+  });
+}
+
+function postsList(req, res) {
+  const status = ['published', 'draft', 'all'].includes(req.query.status)
+    ? req.query.status
+    : 'all';
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const result = postsService.listPosts({ status, page, limit: 20 });
+
+  res.render('admin/posts-list', {
+    title: 'Posts',
+    posts: result.items,
+    pagination: result,
+    statusFilter: status,
+    formatDate,
+    paths,
+  });
+}
+
+function postNewGet(_req, res) {
+  res.render('admin/post-form', {
+    title: 'New post',
+    mode: 'create',
+    post: {
+      title: '',
+      slug: '',
+      excerpt: '',
+      bodyMd: '',
+      status: 'draft',
+      categories: [],
+      tags: [],
+    },
+    categories: categoriesService.listCategories(),
+    tags: tagsService.listTags(),
+    error: null,
+  });
+}
+
+async function postCreate(req, res) {
+  const data = parsePostBody(req);
+  const { categoryIds, tagIds } = await resolveTaxonomies(req);
+
+  if (!data.title) {
+    return res.status(400).render('admin/post-form', {
+      title: 'New post',
+      mode: 'create',
+      post: { ...data, categories: [], tags: [] },
+      categories: categoriesService.listCategories(),
+      tags: tagsService.listTags(),
+      error: 'Title is required.',
+      selectedCategoryIds: categoryIds,
+      selectedTagIds: tagIds,
+    });
+  }
+
+  try {
+    const post = await postsService.createPost({
+      title: data.title,
+      slug: data.slug || undefined,
+      excerpt: data.excerpt,
+      bodyMd: data.bodyMd,
+      status: data.status,
+      authorId: req.session.user.id,
+      categoryIds,
+      tagIds,
+    });
+
+    req.flash('ok', `Post “${post.title}” created.`);
+    return res.redirect(paths.admin.postEdit(post.id));
+  } catch (err) {
+    return res.status(err.status || 400).render('admin/post-form', {
+      title: 'New post',
+      mode: 'create',
+      post: { ...data, categories: [], tags: [] },
+      categories: categoriesService.listCategories(),
+      tags: tagsService.listTags(),
+      error: err.message || 'Could not create post.',
+      selectedCategoryIds: categoryIds,
+      selectedTagIds: tagIds,
+    });
+  }
+}
+
+function postEditGet(req, res, next) {
+  const { id } = req.params;
+  if (!isValidId(id)) return next();
+
+  const post = postsService.getById(id);
+  if (!post) return next();
+
+  res.render('admin/post-form', {
+    title: `Edit: ${post.title}`,
+    mode: 'edit',
+    post,
+    categories: categoriesService.listCategories(),
+    tags: tagsService.listTags(),
+    error: null,
+    selectedCategoryIds: (post.categories || []).map((c) => c.id),
+    selectedTagIds: (post.tags || []).map((t) => t.id),
+  });
+}
+
+async function postUpdate(req, res, next) {
+  const { id } = req.params;
+  if (!isValidId(id)) return next();
+
+  const existing = postsService.getById(id);
+  if (!existing) return next();
+
+  const data = parsePostBody(req);
+  const { categoryIds, tagIds } = await resolveTaxonomies(req);
+
+  if (!data.title) {
+    return res.status(400).render('admin/post-form', {
+      title: `Edit: ${existing.title}`,
+      mode: 'edit',
+      post: { ...existing, ...data },
+      categories: categoriesService.listCategories(),
+      tags: tagsService.listTags(),
+      error: 'Title is required.',
+      selectedCategoryIds: categoryIds,
+      selectedTagIds: tagIds,
+    });
+  }
+
+  try {
+    const post = await postsService.updatePost(id, {
+      title: data.title,
+      // Manual slug when not regenerating from title
+      slug: data.updateSlug ? undefined : data.slug || undefined,
+      excerpt: data.excerpt,
+      bodyMd: data.bodyMd,
+      status: data.status,
+      categoryIds,
+      tagIds,
+      // Regenerate unique slug from title when checked
+      updateSlug: data.updateSlug,
+    });
+
+    req.flash('ok', `Post “${post.title}” saved.`);
+    return res.redirect(paths.admin.postEdit(id));
+  } catch (err) {
+    return res.status(err.status || 400).render('admin/post-form', {
+      title: `Edit: ${existing.title}`,
+      mode: 'edit',
+      post: { ...existing, ...data },
+      categories: categoriesService.listCategories(),
+      tags: tagsService.listTags(),
+      error: err.message || 'Could not update post.',
+      selectedCategoryIds: categoryIds,
+      selectedTagIds: tagIds,
+    });
+  }
+}
+
+function postDelete(req, res, next) {
+  const { id } = req.params;
+  if (!isValidId(id)) return next();
+
+  const existing = postsService.getById(id);
+  if (!existing) return next();
+
+  postsService.deletePost(id);
+  req.flash('ok', `Deleted “${existing.title}”.`);
+  res.redirect(paths.admin.posts());
+}
+
+function postPreview(req, res, next) {
+  const { id } = req.params;
+  if (!isValidId(id)) return next();
+
+  const post = postsService.getById(id);
+  if (!post) return next();
+
+  const bodyHtml = renderMarkdown(post.bodyMd);
+  const excerpt = post.excerpt || plainExcerpt(post.bodyMd);
+
+  res.render('admin/preview', {
+    title: `Preview: ${post.title}`,
+    post: {
+      ...post,
+      bodyHtml,
+      excerpt,
+      publishedLabel: formatDate(post.publishedAt || post.createdAt),
+      url: paths.post(post.slug),
+    },
+    isDraft: post.status !== 'published',
+  });
+}
+
+function settingsGet(_req, res) {
+  const all = settingsService.getAll();
+  const authors = usersService.listUsers();
+
+  res.render('admin/settings', {
+    title: 'Settings',
+    settings: {
+      site_title: all.site_title || config.siteName,
+      site_description: all.site_description || '',
+      posts_per_page: all.posts_per_page || '10',
+    },
+    authors,
+    error: null,
+  });
+}
+
+function settingsPost(req, res) {
+  const site_title = String(req.body.site_title || '').trim() || config.siteName;
+  const site_description = String(req.body.site_description || '').trim();
+  let posts_per_page = Number(req.body.posts_per_page) || 10;
+  posts_per_page = String(Math.min(50, Math.max(1, posts_per_page)));
+
+  settingsService.setMany({
+    site_title,
+    site_description,
+    posts_per_page,
+  });
+
+  // Optional author bio updates
+  const authorIds = asArray(req.body.authorId).filter(isValidId);
+  for (const id of authorIds) {
+    const displayName = String(req.body[`displayName_${id}`] || '').trim();
+    const bio = String(req.body[`bio_${id}`] || '');
+    if (displayName) {
+      usersService.updateProfile(id, { displayName, bio });
+    }
+  }
+
+  // Refresh session display name if current user updated
+  if (req.session.user) {
+    const me = usersService.getById(req.session.user.id);
+    if (me) {
+      req.session.user = {
+        id: me.id,
+        username: me.username,
+        displayName: me.displayName,
+        bio: me.bio,
+      };
+    }
+  }
+
+  req.flash('ok', 'Settings saved.');
+  res.redirect(paths.admin.settings());
+}
+
+module.exports = {
+  loginForm,
+  loginSubmit,
+  logout,
+  dashboard,
+  postsList,
+  postNewGet,
+  postCreate,
+  postEditGet,
+  postUpdate,
+  postDelete,
+  postPreview,
+  settingsGet,
+  settingsPost,
+  // exported for tests
+  resolveTaxonomies,
+  isValidSlug,
+};

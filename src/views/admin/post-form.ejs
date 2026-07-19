@@ -1,0 +1,129 @@
+<%- include('layout-top') %>
+
+<% 
+  var selectedCats = typeof selectedCategoryIds !== 'undefined' ? selectedCategoryIds : (post.categories || []).map(function (c) { return c.id; });
+  var selectedTags = typeof selectedTagIds !== 'undefined' ? selectedTagIds : (post.tags || []).map(function (t) { return t.id; });
+  var formAction = mode === 'create' ? paths.admin.postNew().replace(/\/new$/, '') /* /admin/posts */ : paths.admin.postEdit(post.id);
+  if (mode === 'create') formAction = paths.admin.posts();
+%>
+
+<header class="admin-page-header admin-page-header--row">
+  <div>
+    <h1><%= mode === 'create' ? 'New post' : 'Edit post' %></h1>
+    <% if (mode === 'edit') { %>
+    <p class="muted">
+      ID <code><%= post.id %></code>
+      · public <code>/blog/<%= post.slug %></code>
+    </p>
+    <% } %>
+  </div>
+  <% if (mode === 'edit') { %>
+  <div class="admin-actions">
+    <a class="btn btn-ghost" href="<%= paths.admin.postPreview(post.id) %>">Preview</a>
+    <% if (post.status === 'published') { %>
+    <a class="btn btn-ghost" href="<%= paths.post(post.slug) %>" target="_blank" rel="noopener">View public</a>
+    <% } %>
+  </div>
+  <% } %>
+</header>
+
+<% if (error) { %>
+<p class="flash flash-error" role="alert"><%= error %></p>
+<% } %>
+
+<form method="post" action="<%= formAction %>" class="admin-form post-form">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+
+  <div class="field">
+    <label for="title">Title</label>
+    <input id="title" name="title" type="text" required maxlength="200" value="<%= post.title %>" />
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label for="slug">Slug <span class="muted">(public URL segment)</span></label>
+      <input id="slug" name="slug" type="text" maxlength="120" value="<%= post.slug || '' %>" placeholder="auto-from-title" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" />
+      <p class="field-hint">Public path: <code>/blog/<span data-slug-preview><%= post.slug || '…' %></span></code> — never a UUID.</p>
+    </div>
+    <% if (mode === 'edit') { %>
+    <div class="field field-check">
+      <label>
+        <input type="checkbox" name="updateSlug" value="1" />
+        Regenerate slug from title
+      </label>
+    </div>
+    <% } %>
+  </div>
+
+  <div class="field">
+    <label for="excerpt">Excerpt</label>
+    <textarea id="excerpt" name="excerpt" rows="2" maxlength="500"><%= post.excerpt || '' %></textarea>
+  </div>
+
+  <div class="field">
+    <label for="bodyMd">Body (Markdown)</label>
+    <textarea id="bodyMd" name="bodyMd" rows="16" class="mono"><%= post.bodyMd || '' %></textarea>
+  </div>
+
+  <div class="media-embed-panel card" data-media-embed>
+    <div class="media-embed-header">
+      <h2 class="section-title" style="margin:0">Insert media</h2>
+      <a class="btn btn-ghost btn-sm" href="<%= paths.admin.media() %>" target="_blank" rel="noopener">Open library</a>
+      <button type="button" class="btn btn-ghost btn-sm" data-media-refresh>Refresh</button>
+    </div>
+    <p class="field-hint">Click a file to append Markdown / video embed at the cursor in the body.</p>
+    <div class="media-embed-grid" data-media-list>
+      <p class="muted">Loading…</p>
+    </div>
+  </div>
+
+  <div class="field">
+    <span class="label-text">Status</span>
+    <div class="radio-row">
+      <label><input type="radio" name="status" value="draft" <%= (post.status || 'draft') === 'draft' ? 'checked' : '' %> /> Draft</label>
+      <label><input type="radio" name="status" value="published" <%= post.status === 'published' ? 'checked' : '' %> /> Published</label>
+    </div>
+  </div>
+
+  <fieldset class="field">
+    <legend>Categories</legend>
+    <div class="check-grid">
+      <% categories.forEach(function (cat) { %>
+      <label>
+        <input type="checkbox" name="categoryIds" value="<%= cat.id %>" <%= selectedCats.indexOf(cat.id) !== -1 ? 'checked' : '' %> />
+        <%= cat.name %> <span class="muted">/<%= cat.slug %></span>
+      </label>
+      <% }) %>
+    </div>
+    <label class="field-sub" for="newCategories">Add categories (comma-separated)</label>
+    <input id="newCategories" name="newCategories" type="text" placeholder="e.g. Spoilers, OVA" />
+  </fieldset>
+
+  <fieldset class="field">
+    <legend>Tags</legend>
+    <div class="check-grid">
+      <% tags.forEach(function (tag) { %>
+      <label>
+        <input type="checkbox" name="tagIds" value="<%= tag.id %>" <%= selectedTags.indexOf(tag.id) !== -1 ? 'checked' : '' %> />
+        #<%= tag.name %>
+      </label>
+      <% }) %>
+    </div>
+    <label class="field-sub" for="newTags">Add tags (comma-separated)</label>
+    <input id="newTags" name="newTags" type="text" placeholder="e.g. isekai, 90s" />
+  </fieldset>
+
+  <div class="admin-actions">
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a class="btn btn-ghost" href="<%= paths.admin.posts() %>">Cancel</a>
+  </div>
+</form>
+
+<% if (mode === 'edit') { %>
+<form method="post" action="<%= paths.admin.postDelete(post.id) %>" class="admin-danger" onsubmit="return confirm('Delete this post permanently?');">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+  <button type="submit" class="btn btn-danger">Delete post</button>
+</form>
+<% } %>
+
+<%- include('layout-bottom') %>

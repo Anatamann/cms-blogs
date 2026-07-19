@@ -1,0 +1,32 @@
+<%- include('../partials/header') %>
+
+<div class="wrap layout-with-sidebar">
+  <div class="layout-main">
+    <header class="page-header">
+      <h1><%= heading %></h1>
+      <% if (subheading) { %><p class="lead"><%= subheading %></p><% } %>
+      <% if (filter) { %>
+      <p class="filter-pill">
+        Filtered by <%= filter.type %>:
+        <strong><%= filter.name %></strong>
+        · <a href="<%= paths.blog() %>">Clear</a>
+      </p>
+      <% } %>
+    </header>
+
+    <% if (!posts || !posts.length) { %>
+    <p class="lead">No posts found.</p>
+    <% } else { %>
+    <p class="result-count"><%= pagination.total %> post<%= pagination.total === 1 ? '' : 's' %></p>
+    <div class="post-grid">
+      <% posts.forEach(function (post) { %>
+        <%- include('../partials/post-card', { post: post }) %>
+      <% }) %>
+    </div>
+    <%- include('../partials/pagination') %>
+    <% } %>
+  </div>
+  <%- include('../partials/sidebar') %>
+</div>
+
+<%- include('../partials/footer') %>

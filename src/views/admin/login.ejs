@@ -1,0 +1,25 @@
+<%- include('layout-top') %>
+
+<section class="admin-login card">
+  <h1>Admin login</h1>
+  <p class="lead">Sign in to manage posts and settings.</p>
+
+  <% if (error) { %>
+  <p class="flash flash-error" role="alert"><%= error %></p>
+  <% } %>
+
+  <form method="post" action="<%= paths.admin.login() %>" class="admin-form">
+    <div class="field">
+      <label for="username">Username</label>
+      <input id="username" name="username" type="text" autocomplete="username" required value="<%= username %>" />
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required />
+    </div>
+    <button type="submit" class="btn btn-primary">Sign in</button>
+  </form>
+  <p class="muted"><a href="<%= paths.home() %>">← Back to site</a></p>
+</section>
+
+<%- include('layout-bottom') %>

@@ -1,0 +1,34 @@
+<%- include('layout-top') %>
+
+<header class="admin-page-header admin-page-header--row">
+  <div>
+    <h1>Preview</h1>
+    <p class="lead">
+      <%= post.title %>
+      <% if (isDraft) { %><span class="status-pill status-draft">draft</span><% } %>
+    </p>
+  </div>
+  <div class="admin-actions">
+    <a class="btn btn-ghost" href="<%= paths.admin.postEdit(post.id) %>">Edit</a>
+    <% if (!isDraft) { %>
+    <a class="btn btn-primary" href="<%= post.url %>" target="_blank" rel="noopener">Open public</a>
+    <% } %>
+  </div>
+</header>
+
+<article class="admin-preview prose">
+  <p class="muted">
+    Public URL would be <code><%= post.url %></code>
+    <% if (isDraft) { %> (not public until published)<% } %>
+  </p>
+  <h1 class="post-page__title"><%= post.title %></h1>
+  <p class="post-card__meta">
+    <% if (post.publishedLabel) { %><%= post.publishedLabel %><% } %>
+    <% if (post.author) { %> · <%= post.author.displayName %><% } %>
+  </p>
+  <div class="prose">
+    <%- post.bodyHtml %>
+  </div>
+</article>
+
+<%- include('layout-bottom') %>

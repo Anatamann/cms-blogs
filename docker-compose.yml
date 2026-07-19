@@ -1,0 +1,45 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: ainmeblog-app
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      SITE_NAME: ${SITE_NAME:-Ainme Blog}
+      APP_URL: ${APP_URL:-http://localhost:8080}
+      SESSION_SECRET: ${SESSION_SECRET:-change-me-in-production}
+      DATA_DIR: /app/data
+      DATABASE_FILE: ainme.sqlite
+      UPLOADS_DIR: /app/public/uploads
+      AUTO_SEED: ${AUTO_SEED:-true}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-changeme}
+    volumes:
+      - ainme_data:/app/data
+      - ainme_uploads:/app/public/uploads
+    expose:
+      - "3000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: ainmeblog-nginx
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    ports:
+      - "${NGINX_HTTP_PORT:-8080}:80"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+
+volumes:
+  ainme_data:
+  ainme_uploads:

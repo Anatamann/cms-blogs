@@ -1,0 +1,96 @@
+<%- include('layout-top') %>
+
+<header class="admin-page-header admin-page-header--row">
+  <div>
+    <h1>Media library</h1>
+    <p class="lead"><%= pagination.total %> file<%= pagination.total === 1 ? '' : 's' %> · images → WebP · GIF animation preserved · video ≤ 30MB</p>
+  </div>
+</header>
+
+<section class="card media-upload-panel">
+  <h2 class="section-title">Upload</h2>
+  <form
+    method="post"
+    action="<%= paths.admin.mediaUpload() %>"
+    enctype="multipart/form-data"
+    class="admin-form media-upload-form"
+  >
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+    <div class="field">
+      <label for="file">File</label>
+      <input id="file" name="file" type="file" required accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime,.jpg,.jpeg,.png,.webp,.gif,.mp4,.webm,.mov" />
+      <p class="field-hint">JPEG/PNG/WebP → optimized WebP + thumb. GIF keeps animation. Video max 30MB.</p>
+    </div>
+    <div class="field">
+      <label for="alt">Alt / description</label>
+      <input id="alt" name="alt" type="text" maxlength="300" placeholder="Optional alt text" />
+    </div>
+    <button type="submit" class="btn btn-primary">Upload</button>
+  </form>
+</section>
+
+<div class="admin-filters" style="margin-top:1.25rem">
+  <a class="chip <%= typeFilter === 'all' ? 'is-active' : '' %>" href="<%= paths.admin.media() %>?type=all">All</a>
+  <a class="chip <%= typeFilter === 'image' ? 'is-active' : '' %>" href="<%= paths.admin.media() %>?type=image">Images</a>
+  <a class="chip <%= typeFilter === 'gif' ? 'is-active' : '' %>" href="<%= paths.admin.media() %>?type=gif">GIFs</a>
+  <a class="chip <%= typeFilter === 'video' ? 'is-active' : '' %>" href="<%= paths.admin.media() %>?type=video">Videos</a>
+</div>
+
+<% if (!items.length) { %>
+<p class="muted">No media yet. Upload something above.</p>
+<% } else { %>
+<div class="media-grid">
+  <% items.forEach(function (item) { %>
+  <article class="media-card card">
+    <div class="media-card__preview">
+      <% if (item.type === 'video') { %>
+        <% if (item.thumbUrl) { %>
+        <img src="<%= item.thumbUrl %>" alt="<%= item.alt || item.filename %>" loading="lazy" />
+        <% } else { %>
+        <div class="media-card__video-ph">VIDEO</div>
+        <% } %>
+      <% } else { %>
+      <img src="<%= item.thumbUrl || item.url %>" alt="<%= item.alt || item.filename %>" loading="lazy" />
+      <% } %>
+      <span class="status-pill media-type-pill"><%= item.type %></span>
+    </div>
+    <div class="media-card__body">
+      <p class="media-card__name" title="<%= item.filename %>"><%= item.filename %></p>
+      <p class="muted media-card__meta"><%= item.sizeLabel %><% if (item.width) { %> · <%= item.width %>×<%= item.height %><% } %></p>
+      <p class="media-card__path"><code><%= item.url %></code></p>
+      <div class="media-card__actions">
+        <button type="button" class="btn btn-ghost btn-sm" data-copy="<%= item.url %>">Copy URL</button>
+        <button type="button" class="btn btn-ghost btn-sm" data-copy="<%= item.markdown.trim() %>">Copy MD</button>
+        <a class="btn btn-ghost btn-sm" href="<%= item.url %>" target="_blank" rel="noopener">Open</a>
+      </div>
+      <form method="post" action="<%= paths.admin.mediaAlt(item.id) %>" class="media-alt-form">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+        <input type="hidden" name="type" value="<%= typeFilter %>" />
+        <label class="sr-only" for="alt-<%= item.id %>">Alt text</label>
+        <input id="alt-<%= item.id %>" name="alt" type="text" value="<%= item.alt %>" placeholder="Alt text" maxlength="300" />
+        <button type="submit" class="btn btn-ghost btn-sm">Save alt</button>
+      </form>
+      <form method="post" action="<%= paths.admin.mediaDelete(item.id) %>" onsubmit="return confirm('Delete this media file?');">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+        <input type="hidden" name="type" value="<%= typeFilter %>" />
+        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+      </form>
+    </div>
+  </article>
+  <% }) %>
+</div>
+
+<% if (pagination.totalPages > 1) { %>
+<nav class="pagination" aria-label="Media pagination">
+  <% if (pagination.page > 1) { %>
+  <a class="btn btn-ghost btn-sm" href="<%= paths.admin.media() %>?type=<%= typeFilter %>&page=<%= pagination.page - 1 %>">← Prev</a>
+  <% } %>
+  <span class="pagination__status">Page <%= pagination.page %> / <%= pagination.totalPages %></span>
+  <% if (pagination.page < pagination.totalPages) { %>
+  <a class="btn btn-ghost btn-sm" href="<%= paths.admin.media() %>?type=<%= typeFilter %>&page=<%= pagination.page + 1 %>">Next →</a>
+  <% } %>
+</nav>
+<% } %>
+<% } %>
+
+<%- include('layout-bottom') %>

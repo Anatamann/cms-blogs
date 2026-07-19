@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title><%= typeof title !== 'undefined' && title ? title + ' · ' : '' %>Admin · <%= siteName %></title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/admin.css" />
+</head>
+<body class="admin-body theme-retro" data-theme="retro-crt">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="admin-header">
+    <div class="wrap admin-header-inner">
+      <a class="logo glitch-hover" href="<%= paths.admin.home() %>">Admin</a>
+      <span class="admin-site-name"><%= siteName %></span>
+      <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+      <nav class="admin-nav" aria-label="Admin">
+        <a href="<%= paths.admin.home() %>" <%= typeof currentPath !== 'undefined' && currentPath === '/admin' ? 'aria-current="page"' : '' %>>Dashboard</a>
+        <a href="<%= paths.admin.posts() %>" <%= typeof currentPath !== 'undefined' && currentPath.indexOf('/admin/posts') === 0 ? 'aria-current="page"' : '' %>>Posts</a>
+        <a href="<%= paths.admin.postNew() %>">New</a>
+        <a href="<%= paths.admin.media() %>" <%= typeof currentPath !== 'undefined' && currentPath.indexOf('/admin/media') === 0 ? 'aria-current="page"' : '' %>>Media</a>
+        <a href="<%= paths.admin.settings() %>" <%= typeof currentPath !== 'undefined' && currentPath.indexOf('/admin/settings') === 0 ? 'aria-current="page"' : '' %>>Settings</a>
+        <a href="<%= paths.home() %>" target="_blank" rel="noopener">View site</a>
+        <form class="admin-logout" action="<%= paths.admin.logout() %>" method="post">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+          <button type="submit" class="btn btn-ghost btn-sm">Log out (<%= currentUser.username %>)</button>
+        </form>
+      </nav>
+      <% } %>
+    </div>
+  </header>
+  <main id="main" class="admin-main wrap">
+    <% if (typeof flash !== 'undefined' && flash) { %>
+    <p class="flash flash-<%= flash.type === 'ok' ? 'ok' : 'error' %>" role="status"><%= flash.message %></p>
+    <% } %>

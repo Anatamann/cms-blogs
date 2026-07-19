@@ -1,0 +1,42 @@
+{
+  "name": "ainmeblog",
+  "version": "0.1.0",
+  "description": "Lightweight anime blogging CMS — retro-modern, Dockerized, 1–2 authors",
+  "private": true,
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "db:seed": "node src/db/seed.js",
+    "test:smoke": "node scripts/smoke-check.js",
+    "test:phase1": "node scripts/phase1-check.js",
+    "test:phase2": "node scripts/phase2-check.js",
+    "test:phase3": "node scripts/phase3-check.js",
+    "test:phase4": "node scripts/phase4-check.js",
+    "test:phase5": "node scripts/phase5-check.js",
+    "test": "npm run test:smoke && npm run test:phase1 && npm run test:phase2 && npm run test:phase3 && npm run test:phase4 && npm run test:phase5"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^12.11.1",
+    "dotenv": "^16.4.7",
+    "drizzle-orm": "^0.45.2",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-rate-limit": "^8.6.0",
+    "express-session": "^1.19.0",
+    "helmet": "^8.0.0",
+    "marked": "^18.0.6",
+    "morgan": "^1.10.0",
+    "multer": "^2.2.0",
+    "sanitize-html": "^2.17.6",
+    "sharp": "^0.35.3",
+    "uuid": "^11.0.5"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.10"
+  }
+}

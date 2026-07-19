@@ -1,0 +1,54 @@
+<%- include('../partials/header') %>
+
+<article class="wrap post-page">
+  <header class="post-page__header">
+    <% if (post.categories && post.categories.length) { %>
+    <p class="post-card__cats">
+      <% post.categories.forEach(function (cat) { %>
+      <a href="<%= paths.category(cat.slug) %>"><%= cat.name %></a>
+      <% }) %>
+    </p>
+    <% } %>
+    <h1 class="post-page__title"><%= post.title %></h1>
+    <p class="post-card__meta">
+      <% if (post.publishedLabel) { %>
+      <time datetime="<%= post.publishedAt || post.createdAt %>"><%= post.publishedLabel %></time>
+      <% } %>
+      <% if (post.author) { %> · <%= post.author.displayName %><% } %>
+    </p>
+  </header>
+
+  <div class="layout-with-sidebar post-layout">
+    <div class="layout-main">
+      <div class="prose scanlines-soft">
+        <%- post.bodyHtml %>
+      </div>
+
+      <% if (post.tags && post.tags.length) { %>
+      <p class="post-card__tags post-page__tags">
+        <% post.tags.forEach(function (tag) { %>
+        <a class="chip chip-tag" href="<%= paths.tag(tag.slug) %>">#<%= tag.name %></a>
+        <% }) %>
+      </p>
+      <% } %>
+
+      <% if (related && related.length) { %>
+      <section class="related" aria-labelledby="related-heading">
+        <h2 id="related-heading" class="section-title">Related</h2>
+        <div class="post-grid post-grid--compact">
+          <% related.forEach(function (post) { %>
+            <%- include('../partials/post-card', { post: post }) %>
+          <% }) %>
+        </div>
+      </section>
+      <% } %>
+
+      <p class="section-more">
+        <a class="btn btn-ghost" href="<%= paths.blog() %>">← Back to blog</a>
+      </p>
+    </div>
+    <%- include('../partials/sidebar') %>
+  </div>
+</article>
+
+<%- include('../partials/footer') %>

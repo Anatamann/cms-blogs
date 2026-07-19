@@ -1,0 +1,15 @@
+<% if (pagination && pagination.totalPages > 1) { %>
+<nav class="pagination" aria-label="Pagination">
+  <% if (pagination.prevUrl) { %>
+  <a class="btn btn-ghost btn-sm" href="<%= pagination.prevUrl %>">← Newer</a>
+  <% } else { %>
+  <span class="btn btn-ghost btn-sm is-disabled" aria-disabled="true">← Newer</span>
+  <% } %>
+  <span class="pagination__status">Page <%= pagination.page %> of <%= pagination.totalPages %></span>
+  <% if (pagination.nextUrl) { %>
+  <a class="btn btn-ghost btn-sm" href="<%= pagination.nextUrl %>">Older →</a>
+  <% } else { %>
+  <span class="btn btn-ghost btn-sm is-disabled" aria-disabled="true">Older →</span>
+  <% } %>
+</nav>
+<% } %>

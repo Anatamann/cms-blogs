@@ -1,0 +1,36 @@
+<aside class="sidebar" aria-label="Sidebar">
+  <section class="sidebar-block">
+    <h2 class="sidebar-title">Search</h2>
+    <form class="search-form search-form--compact" action="<%= paths.search() %>" method="get" role="search">
+      <label class="sr-only" for="sidebar-q">Search posts</label>
+      <input id="sidebar-q" type="search" name="q" placeholder="Search…" value="<%= typeof q !== 'undefined' ? q : '' %>" />
+      <button type="submit" class="btn btn-ghost btn-sm">Go</button>
+    </form>
+  </section>
+
+  <% if (typeof categories !== 'undefined' && categories && categories.length) { %>
+  <section class="sidebar-block">
+    <h2 class="sidebar-title">Categories</h2>
+    <ul class="chip-list">
+      <% categories.forEach(function (cat) { %>
+      <li>
+        <a class="chip" href="<%= paths.category(cat.slug) %>"><%= cat.name %></a>
+      </li>
+      <% }) %>
+    </ul>
+  </section>
+  <% } %>
+
+  <% if (typeof tags !== 'undefined' && tags && tags.length) { %>
+  <section class="sidebar-block">
+    <h2 class="sidebar-title">Tags</h2>
+    <ul class="chip-list">
+      <% tags.forEach(function (tag) { %>
+      <li>
+        <a class="chip chip-tag" href="<%= paths.tag(tag.slug) %>">#<%= tag.name %></a>
+      </li>
+      <% }) %>
+    </ul>
+  </section>
+  <% } %>
+</aside>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <title><%= typeof title !== 'undefined' && title ? title + ' · ' : '' %><%= siteName %></title>
+  <meta name="description" content="<%= typeof metaDescription !== 'undefined' && metaDescription ? metaDescription.replace(/"/g, '&quot;') : 'Lightweight anime blogging CMS — retro-modern vibes.' %>" />
+  <% if (typeof canonicalUrl !== 'undefined' && canonicalUrl) { %>
+  <link rel="canonical" href="<%= canonicalUrl %>" />
+  <% } %>
+  <link rel="alternate" type="application/rss+xml" title="<%= siteName %> RSS" href="<%= paths.rss() %>" />
+  <meta property="og:title" content="<%= typeof title !== 'undefined' && title ? title.replace(/"/g, '&quot;') : siteName %>" />
+  <meta property="og:description" content="<%= typeof metaDescription !== 'undefined' && metaDescription ? metaDescription.replace(/"/g, '&quot;') : '' %>" />
+  <meta property="og:type" content="<%= typeof post !== 'undefined' && post ? 'article' : 'website' %>" />
+  <link rel="stylesheet" href="/css/main.css" />
+  <% if (typeof jsonLd !== 'undefined' && jsonLd) { %>
+  <script type="application/ld+json"><%- JSON.stringify(jsonLd) %></script>
+  <% } %>
+</head>
+<body class="theme-retro" data-theme="retro-crt">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="logo glitch-hover" href="<%= paths.home() %>"><%= siteName %></a>
+      <button
+        type="button"
+        class="nav-toggle"
+        aria-expanded="false"
+        aria-controls="primary-nav"
+        aria-label="Open menu"
+        data-nav-toggle
+      >
+        Menu
+      </button>
+      <nav id="primary-nav" class="nav" aria-label="Primary" data-nav>
+        <a href="<%= paths.home() %>"<% if (typeof navIsActive === 'function' && navIsActive(paths.home())) { %> aria-current="page"<% } %>>Home</a>
+        <a href="<%= paths.blog() %>"<% if (typeof navIsActive === 'function' && navIsActive(paths.blog())) { %> aria-current="page"<% } %>>Blog</a>
+        <a href="<%= paths.archive() %>"<% if (typeof navIsActive === 'function' && navIsActive(paths.archive())) { %> aria-current="page"<% } %>>Archive</a>
+        <a href="<%= paths.search() %>"<% if (typeof navIsActive === 'function' && navIsActive(paths.search())) { %> aria-current="page"<% } %>>Search</a>
+        <a href="<%= paths.about() %>"<% if (typeof navIsActive === 'function' && navIsActive(paths.about())) { %> aria-current="page"<% } %>>About</a>
+        <a href="<%= paths.contact() %>"<% if (typeof navIsActive === 'function' && navIsActive(paths.contact())) { %> aria-current="page"<% } %>>Contact</a>
+        <a href="<%= paths.rss() %>" class="nav-rss">RSS</a>
+        <a href="<%= paths.admin.home() %>" class="nav-admin">Admin</a>
+      </nav>
+    </div>
+  </header>
+  <main id="main" class="site-main" tabindex="-1">

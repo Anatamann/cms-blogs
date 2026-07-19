@@ -1,0 +1,54 @@
+<%- include('layout-top') %>
+
+<header class="admin-page-header">
+  <h1>Dashboard</h1>
+  <p class="lead">Hello, <%= currentUser.displayName %>.</p>
+</header>
+
+<div class="admin-stats">
+  <div class="stat-card"><span class="stat-n"><%= stats.total %></span><span class="stat-l">Posts</span></div>
+  <div class="stat-card"><span class="stat-n"><%= stats.published %></span><span class="stat-l">Published</span></div>
+  <div class="stat-card"><span class="stat-n"><%= stats.drafts %></span><span class="stat-l">Drafts</span></div>
+  <div class="stat-card"><span class="stat-n"><%= stats.categories %></span><span class="stat-l">Categories</span></div>
+  <div class="stat-card"><span class="stat-n"><%= stats.tags %></span><span class="stat-l">Tags</span></div>
+</div>
+
+<p class="admin-actions">
+  <a class="btn btn-primary" href="<%= paths.admin.postNew() %>">New post</a>
+  <a class="btn btn-ghost" href="<%= paths.admin.posts() %>">All posts</a>
+</p>
+
+<div class="admin-two-col">
+  <section>
+    <h2 class="section-title">Recent published</h2>
+    <% if (!recentPublished.length) { %>
+    <p class="muted">None yet.</p>
+    <% } else { %>
+    <ul class="admin-list">
+      <% recentPublished.forEach(function (p) { %>
+      <li>
+        <a href="<%= paths.admin.postEdit(p.id) %>"><%= p.title %></a>
+        <span class="muted"><code>/blog/<%= p.slug %></code></span>
+      </li>
+      <% }) %>
+    </ul>
+    <% } %>
+  </section>
+  <section>
+    <h2 class="section-title">Recent drafts</h2>
+    <% if (!recentDrafts.length) { %>
+    <p class="muted">None yet.</p>
+    <% } else { %>
+    <ul class="admin-list">
+      <% recentDrafts.forEach(function (p) { %>
+      <li>
+        <a href="<%= paths.admin.postEdit(p.id) %>"><%= p.title %></a>
+        <span class="muted"><code><%= p.id.slice(0, 8) %>…</code></span>
+      </li>
+      <% }) %>
+    </ul>
+    <% } %>
+  </section>
+</div>
+
+<%- include('layout-bottom') %>

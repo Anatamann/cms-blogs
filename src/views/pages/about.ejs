@@ -1,0 +1,41 @@
+<%- include('../partials/header') %>
+
+<div class="wrap layout-with-sidebar">
+  <div class="layout-main">
+    <header class="page-header">
+      <h1>About</h1>
+      <p class="lead"><%= siteDescription %></p>
+    </header>
+
+    <div class="prose">
+      <p>
+        <strong><%= siteName %></strong> is a lightweight anime blogging CMS:
+        Markdown posts, clean slug URLs, and a retro-modern UI — without a heavy
+        WordPress-style stack.
+      </p>
+      <p>
+        Content lives in SQLite. Public pages never expose database UUIDs; you
+        browse by human-readable paths like
+        <code>/blog/neon-genesis-evangelion-review</code>.
+      </p>
+    </div>
+
+    <% if (authors && authors.length) { %>
+    <section class="authors" aria-labelledby="authors-heading">
+      <h2 id="authors-heading" class="section-title">Authors</h2>
+      <div class="author-grid">
+        <% authors.forEach(function (author) { %>
+        <article class="card scanlines">
+          <h3><%= author.displayName %></h3>
+          <p class="muted">@<%= author.username %></p>
+          <% if (author.bio) { %><p><%= author.bio %></p><% } %>
+        </article>
+        <% }) %>
+      </div>
+    </section>
+    <% } %>
+  </div>
+  <%- include('../partials/sidebar') %>
+</div>
+
+<%- include('../partials/footer') %>

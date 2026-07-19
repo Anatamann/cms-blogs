@@ -1,0 +1,62 @@
+<%- include('layout-top') %>
+
+<header class="admin-page-header admin-page-header--row">
+  <div>
+    <h1>Posts</h1>
+    <p class="lead"><%= pagination.total %> total</p>
+  </div>
+  <a class="btn btn-primary" href="<%= paths.admin.postNew() %>">New post</a>
+</header>
+
+<div class="admin-filters">
+  <a class="chip <%= statusFilter === 'all' ? 'is-active' : '' %>" href="<%= paths.admin.posts() %>?status=all">All</a>
+  <a class="chip <%= statusFilter === 'published' ? 'is-active' : '' %>" href="<%= paths.admin.posts() %>?status=published">Published</a>
+  <a class="chip <%= statusFilter === 'draft' ? 'is-active' : '' %>" href="<%= paths.admin.posts() %>?status=draft">Drafts</a>
+</div>
+
+<% if (!posts.length) { %>
+<p class="muted">No posts in this filter.</p>
+<% } else { %>
+<table class="admin-table">
+  <thead>
+    <tr>
+      <th>Title</th>
+      <th>Slug</th>
+      <th>Status</th>
+      <th>Updated</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% posts.forEach(function (p) { %>
+    <tr>
+      <td><a href="<%= paths.admin.postEdit(p.id) %>"><%= p.title %></a></td>
+      <td><code><%= p.slug %></code></td>
+      <td><span class="status-pill status-<%= p.status %>"><%= p.status %></span></td>
+      <td class="muted"><%= formatDate(p.updatedAt) %></td>
+      <td class="admin-row-actions">
+        <a href="<%= paths.admin.postPreview(p.id) %>">Preview</a>
+        <% if (p.status === 'published') { %>
+        · <a href="<%= paths.post(p.slug) %>" target="_blank" rel="noopener">Public</a>
+        <% } %>
+        · <a href="<%= paths.admin.postEdit(p.id) %>">Edit</a>
+      </td>
+    </tr>
+    <% }) %>
+  </tbody>
+</table>
+<% } %>
+
+<% if (pagination.totalPages > 1) { %>
+<nav class="pagination" aria-label="Posts pagination">
+  <% if (pagination.page > 1) { %>
+  <a class="btn btn-ghost btn-sm" href="<%= paths.admin.posts() %>?status=<%= statusFilter %>&page=<%= pagination.page - 1 %>">← Prev</a>
+  <% } %>
+  <span class="pagination__status">Page <%= pagination.page %> / <%= pagination.totalPages %></span>
+  <% if (pagination.page < pagination.totalPages) { %>
+  <a class="btn btn-ghost btn-sm" href="<%= paths.admin.posts() %>?status=<%= statusFilter %>&page=<%= pagination.page + 1 %>">Next →</a>
+  <% } %>
+</nav>
+<% } %>
+
+<%- include('layout-bottom') %>

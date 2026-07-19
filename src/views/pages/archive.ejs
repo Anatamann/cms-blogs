@@ -1,0 +1,31 @@
+<%- include('../partials/header') %>
+
+<div class="wrap layout-with-sidebar">
+  <div class="layout-main">
+    <header class="page-header">
+      <h1>Archive</h1>
+      <p class="lead"><%= total %> published post<%= total === 1 ? '' : 's' %>.</p>
+    </header>
+
+    <% if (!years.length) { %>
+    <p class="lead">Nothing published yet.</p>
+    <% } else { %>
+      <% years.forEach(function (year) { %>
+      <section class="archive-year" aria-labelledby="year-<%= year %>">
+        <h2 id="year-<%= year %>" class="section-title"><%= year %></h2>
+        <ul class="archive-list">
+          <% byYear[year].forEach(function (post) { %>
+          <li>
+            <time datetime="<%= post.publishedAt || post.createdAt %>"><%= post.publishedLabel %></time>
+            <a href="<%= post.url %>"><%= post.title %></a>
+          </li>
+          <% }) %>
+        </ul>
+      </section>
+      <% }) %>
+    <% } %>
+  </div>
+  <%- include('../partials/sidebar') %>
+</div>
+
+<%- include('../partials/footer') %>

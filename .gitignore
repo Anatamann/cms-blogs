@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Runtime / data
+data/*.sqlite
+data/*.sqlite-*
+data/*.db
+data/test-*/
+!data/.gitkeep
+
+# Uploads (keep folder structure)
+public/uploads/images/*
+public/uploads/gifs/*
+public/uploads/videos/*
+!public/uploads/**/.gitkeep
+
+# Logs & OS
+logs/
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Coverage / build artifacts
+coverage/
+dist/
+tmp/

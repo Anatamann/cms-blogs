@@ -1,0 +1,15 @@
+<%- include('../partials/header') %>
+
+<section class="wrap page-block admin-shell">
+  <p class="badge">Admin</p>
+  <h1><%= heading %></h1>
+  <p class="lead"><%= message %></p>
+  <ul class="admin-links">
+    <li><a href="<%= paths.admin.home() %>">Dashboard</a></li>
+    <li><a href="<%= paths.admin.login() %>">Login</a></li>
+    <li><a href="<%= paths.admin.posts() %>">Posts</a></li>
+  </ul>
+  <p><a class="btn btn-ghost" href="<%= paths.home() %>">← Public site</a></p>
+</section>
+
+<%- include('../partials/footer') %>
