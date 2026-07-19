@@ -6,6 +6,7 @@ const postsService = require('../services/posts');
 const categoriesService = require('../services/categories');
 const tagsService = require('../services/tags');
 const settingsService = require('../services/settings');
+const commentsService = require('../services/comments');
 const { paths, slugify, isValidSlug } = require('../utils/slug');
 const { isValidId } = require('../utils/uuid');
 const { renderMarkdown, plainExcerpt } = require('../utils/markdown');
@@ -116,6 +117,7 @@ function dashboard(_req, res) {
   const published = postsService.listPosts({ status: 'published', limit: 5 });
   const drafts = postsService.listPosts({ status: 'draft', limit: 5 });
   const all = postsService.listPosts({ status: 'all', limit: 1 });
+  const pendingComments = commentsService.countPending();
 
   res.render('admin/dashboard', {
     title: 'Dashboard',
@@ -125,11 +127,48 @@ function dashboard(_req, res) {
       drafts: drafts.total,
       categories: categoriesService.listCategories().length,
       tags: tagsService.listTags().length,
+      pendingComments,
     },
     recentPublished: published.items,
     recentDrafts: drafts.items,
     formatDate,
   });
+}
+
+function commentsList(req, res) {
+  const status = req.query.status || 'pending';
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const result = commentsService.listForAdmin({ status, page, limit: 30 });
+
+  res.render('admin/comments', {
+    title: 'Comments',
+    ...result,
+    formatDate,
+  });
+}
+
+function commentApprove(req, res, next) {
+  const { id } = req.params;
+  if (!isValidId(id)) return next();
+  commentsService.setStatus(id, 'approved');
+  req.flash('ok', 'Comment approved.');
+  res.redirect(`${paths.admin.comments()}?status=${req.body.status || 'pending'}`);
+}
+
+function commentReject(req, res, next) {
+  const { id } = req.params;
+  if (!isValidId(id)) return next();
+  commentsService.setStatus(id, 'rejected');
+  req.flash('ok', 'Comment rejected.');
+  res.redirect(`${paths.admin.comments()}?status=${req.body.status || 'pending'}`);
+}
+
+function commentDelete(req, res, next) {
+  const { id } = req.params;
+  if (!isValidId(id)) return next();
+  commentsService.deleteComment(id);
+  req.flash('ok', 'Comment deleted.');
+  res.redirect(`${paths.admin.comments()}?status=${req.body.status || 'all'}`);
 }
 
 function postsList(req, res) {
@@ -389,6 +428,10 @@ module.exports = {
   postPreview,
   settingsGet,
   settingsPost,
+  commentsList,
+  commentApprove,
+  commentReject,
+  commentDelete,
   // exported for tests
   resolveTaxonomies,
   isValidSlug,

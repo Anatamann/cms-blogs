@@ -22,6 +22,8 @@ const RESERVED_SLUGS = new Set([
   'edit',
   'media',
   'settings',
+  'comments',
+  'reactions',
 ]);
 
 const SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -121,7 +123,14 @@ const paths = {
     mediaDelete: (id) => `/admin/media/${id}/delete`,
     mediaAlt: (id) => `/admin/media/${id}/alt`,
     settings: () => '/admin/settings',
+    comments: () => '/admin/comments',
+    commentApprove: (id) => `/admin/comments/${id}/approve`,
+    commentReject: (id) => `/admin/comments/${id}/reject`,
+    commentDelete: (id) => `/admin/comments/${id}/delete`,
   },
+  /** Public engagement (slug-based, never UUID). */
+  postComment: (slug) => `/blog/${slug}/comments`,
+  postReaction: (slug) => `/blog/${slug}/reactions`,
 };
 
 module.exports = {

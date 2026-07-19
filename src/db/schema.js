@@ -147,6 +147,55 @@ const settings = sqliteTable('settings', {
     .default(sql`(datetime('now'))`),
 });
 
+/** Moderated comments — only status=approved shown publicly. */
+const comments = sqliteTable(
+  'comments',
+  {
+    id: text('id').primaryKey().notNull(),
+    postId: text('post_id')
+      .notNull()
+      .references(() => posts.id, { onDelete: 'cascade' }),
+    authorName: text('author_name').notNull(),
+    authorEmail: text('author_email').notNull().default(''),
+    body: text('body').notNull(),
+    status: text('status').notNull().default('pending'), // pending | approved | rejected
+    createdAt: text('created_at')
+      .notNull()
+      .default(sql`(datetime('now'))`),
+  },
+  (t) => ({
+    postIdx: index('comments_post_id_idx').on(t.postId),
+    statusIdx: index('comments_status_idx').on(t.status),
+  })
+);
+
+/**
+ * Reactions — fixed types (like, fire, love, wow).
+ * One row per visitorKey + post + type (toggle off = delete).
+ */
+const reactions = sqliteTable(
+  'reactions',
+  {
+    id: text('id').primaryKey().notNull(),
+    postId: text('post_id')
+      .notNull()
+      .references(() => posts.id, { onDelete: 'cascade' }),
+    type: text('type').notNull(), // like | fire | love | wow
+    visitorKey: text('visitor_key').notNull(),
+    createdAt: text('created_at')
+      .notNull()
+      .default(sql`(datetime('now'))`),
+  },
+  (t) => ({
+    postTypeVisitorUq: uniqueIndex('reactions_post_type_visitor_uq').on(
+      t.postId,
+      t.type,
+      t.visitorKey
+    ),
+    postIdx: index('reactions_post_id_idx').on(t.postId),
+  })
+);
+
 module.exports = {
   users,
   posts,
@@ -156,4 +205,6 @@ module.exports = {
   postTags,
   media,
   settings,
+  comments,
+  reactions,
 };

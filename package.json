@@ -8,13 +8,15 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "db:seed": "node src/db/seed.js",
+    "backup": "bash scripts/backup.sh",
     "test:smoke": "node scripts/smoke-check.js",
     "test:phase1": "node scripts/phase1-check.js",
     "test:phase2": "node scripts/phase2-check.js",
     "test:phase3": "node scripts/phase3-check.js",
     "test:phase4": "node scripts/phase4-check.js",
     "test:phase5": "node scripts/phase5-check.js",
-    "test": "npm run test:smoke && npm run test:phase1 && npm run test:phase2 && npm run test:phase3 && npm run test:phase4 && npm run test:phase5"
+    "test:phase6": "node scripts/phase6-check.js",
+    "test": "npm run test:smoke && npm run test:phase1 && npm run test:phase2 && npm run test:phase3 && npm run test:phase4 && npm run test:phase5 && npm run test:phase6"
   },
   "engines": {
     "node": ">=20"

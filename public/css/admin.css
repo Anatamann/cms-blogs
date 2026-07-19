@@ -268,6 +268,56 @@
   color: var(--muted);
 }
 
+.status-pending {
+  color: var(--yellow, #f0e130);
+  border-color: rgba(240, 225, 48, 0.45);
+}
+
+.status-approved {
+  color: var(--green);
+  border-color: rgba(57, 255, 20, 0.4);
+}
+
+.status-rejected {
+  color: var(--muted);
+}
+
+.admin-comment-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-comment-card {
+  padding: 1rem 1.15rem;
+}
+
+.admin-comment-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.85rem;
+  align-items: center;
+  margin-bottom: 0.35rem;
+}
+
+.admin-comment-card__post {
+  margin: 0 0 0.65rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.admin-comment-card__body {
+  white-space: pre-wrap;
+  margin-bottom: 0.85rem;
+  line-height: 1.5;
+}
+
+.admin-comment-card .admin-actions form {
+  display: inline;
+}
+
 .admin-filters {
   display: flex;
   flex-wrap: wrap;

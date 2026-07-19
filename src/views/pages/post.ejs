@@ -32,6 +32,80 @@
       </p>
       <% } %>
 
+      <!-- Reactions -->
+      <section id="reactions" class="reactions" aria-labelledby="reactions-heading">
+        <h2 id="reactions-heading" class="section-title">Reactions</h2>
+        <div class="reactions-row" role="group" aria-label="Post reactions">
+          <% reactions.types.forEach(function (r) { %>
+          <form method="post" action="<%= paths.postReaction(post.slug) %>" class="reaction-form">
+            <input type="hidden" name="type" value="<%= r.type %>" />
+            <button
+              type="submit"
+              class="reaction-btn<%= reactions.mine.indexOf(r.type) !== -1 ? ' is-active' : '' %>"
+              aria-pressed="<%= reactions.mine.indexOf(r.type) !== -1 ? 'true' : 'false' %>"
+              title="<%= r.label %>"
+            >
+              <span class="reaction-emoji" aria-hidden="true"><%= r.emoji %></span>
+              <span class="reaction-label"><%= r.label %></span>
+              <span class="reaction-count"><%= reactions.counts[r.type] || 0 %></span>
+            </button>
+          </form>
+          <% }) %>
+        </div>
+      </section>
+
+      <!-- Comments -->
+      <section id="comments" class="comments" aria-labelledby="comments-heading">
+        <h2 id="comments-heading" class="section-title">Comments</h2>
+
+        <% if (commentFlash) { %>
+        <p class="flash flash-<%= commentFlash.type === 'ok' ? 'ok' : 'error' %>" role="status">
+          <%= commentFlash.message %>
+        </p>
+        <% } %>
+
+        <% if (!comments.length) { %>
+        <p class="muted">No comments yet. Be the first (after moderation).</p>
+        <% } else { %>
+        <ul class="comment-list">
+          <% comments.forEach(function (c) { %>
+          <li class="comment-item card scanlines">
+            <header class="comment-item__meta">
+              <strong class="comment-item__name"><%= c.authorName %></strong>
+              <time datetime="<%= c.createdAt %>"><%= c.createdLabel %></time>
+            </header>
+            <div class="comment-item__body"><%- c.bodyHtml %></div>
+          </li>
+          <% }) %>
+        </ul>
+        <% } %>
+
+        <form method="post" action="<%= paths.postComment(post.slug) %>" class="comment-form contact-form">
+          <h3 class="comment-form__title">Leave a comment</h3>
+          <p class="field-hint">Comments are moderated and appear after approval.</p>
+
+          <!-- Honeypot -->
+          <div class="hp-field" aria-hidden="true">
+            <label for="website">Website</label>
+            <input id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
+          </div>
+
+          <div class="field">
+            <label for="comment-name">Name</label>
+            <input id="comment-name" name="name" type="text" required maxlength="80" value="<%= commentForm.name %>" />
+          </div>
+          <div class="field">
+            <label for="comment-email">Email <span class="muted">(not published)</span></label>
+            <input id="comment-email" name="email" type="email" maxlength="200" value="<%= commentForm.email %>" />
+          </div>
+          <div class="field">
+            <label for="comment-body">Comment</label>
+            <textarea id="comment-body" name="body" rows="5" required maxlength="2000"><%= commentForm.body %></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Submit for review</button>
+        </form>
+      </section>
+
       <% if (related && related.length) { %>
       <section class="related" aria-labelledby="related-heading">
         <h2 id="related-heading" class="section-title">Related</h2>

@@ -6,9 +6,12 @@ const categoriesService = require('../services/categories');
 const tagsService = require('../services/tags');
 const settingsService = require('../services/settings');
 const usersService = require('../services/users');
+const commentsService = require('../services/comments');
+const reactionsService = require('../services/reactions');
 const { paths, isValidSlug } = require('../utils/slug');
 const { renderMarkdown, plainExcerpt } = require('../utils/markdown');
 const { formatDate, escapeXml, absoluteUrl } = require('../utils/format');
+const { ensureVisitorKey } = require('../utils/visitor');
 
 function siteMeta() {
   const all = settingsService.getAll();
@@ -113,6 +116,7 @@ function home(req, res) {
     title: meta.siteTitle,
     metaDescription: meta.siteDescription,
     siteDescription: meta.siteDescription,
+    canonicalUrl: absoluteUrl(config.appUrl, paths.home()),
     posts: latest.items.map(presentPostCard),
     ...sidebarData(),
   });
@@ -161,12 +165,22 @@ function blogPost(req, res, next) {
 
   const presented = presentPost(post);
   const meta = siteMeta();
+  const visitorKey = req.session?.visitorId || null;
+  const comments = commentsService.listApprovedForPost(post.id).map((c) => ({
+    ...c,
+    createdLabel: formatDate(c.createdAt),
+  }));
+  const reactions = reactionsService.getForPost(post.id, visitorKey);
 
   res.render('pages/post', {
     title: presented.title,
     metaDescription: presented.excerpt,
     post: presented,
     related: relatedPosts(post),
+    comments,
+    reactions,
+    commentFlash: req.session?.commentFlash || null,
+    commentForm: req.session?.commentForm || { name: '', email: '', body: '' },
     canonicalUrl: absoluteUrl(config.appUrl, paths.post(presented.slug)),
     jsonLd: {
       '@context': 'https://schema.org',
@@ -182,6 +196,87 @@ function blogPost(req, res, next) {
     },
     siteDescription: meta.siteDescription,
     ...sidebarData(),
+  });
+
+  if (req.session) {
+    delete req.session.commentFlash;
+    delete req.session.commentForm;
+  }
+}
+
+/**
+ * POST /blog/:slug/comments — moderated (pending until admin approves).
+ */
+function postComment(req, res, next) {
+  const { slug } = req.params;
+  if (!isValidSlug(slug)) return next();
+
+  const post = postsService.getBySlug(slug);
+  if (!post) return next();
+
+  // Honeypot — bots fill hidden "website" field
+  if (req.body.website) {
+    return res.redirect(`${paths.post(slug)}#comments`);
+  }
+
+  ensureVisitorKey(req);
+
+  try {
+    commentsService.createPending({
+      postId: post.id,
+      authorName: req.body.name,
+      authorEmail: req.body.email,
+      body: req.body.body,
+    });
+    req.session.commentFlash = {
+      type: 'ok',
+      message: 'Thanks! Your comment was submitted and awaits moderation.',
+    };
+    req.session.commentForm = { name: '', email: '', body: '' };
+  } catch (err) {
+    req.session.commentFlash = {
+      type: 'error',
+      message: err.message || 'Could not submit comment.',
+    };
+    req.session.commentForm = {
+      name: String(req.body.name || ''),
+      email: String(req.body.email || ''),
+      body: String(req.body.body || ''),
+    };
+  }
+
+  req.session.save(() => {
+    res.redirect(`${paths.post(slug)}#comments`);
+  });
+}
+
+/**
+ * POST /blog/:slug/reactions — toggle reaction type for this visitor.
+ */
+function postReaction(req, res, next) {
+  const { slug } = req.params;
+  if (!isValidSlug(slug)) return next();
+
+  const post = postsService.getBySlug(slug);
+  if (!post) return next();
+
+  const type = String(req.body.type || '');
+  const visitorKey = ensureVisitorKey(req);
+
+  try {
+    const result = reactionsService.toggle(post.id, type, visitorKey);
+    // JSON for progressive enhancement; form POST also works
+    if (req.accepts('json') && req.get('accept')?.includes('application/json')) {
+      return res.json(result);
+    }
+  } catch (err) {
+    if (req.accepts('json') && req.get('accept')?.includes('application/json')) {
+      return res.status(err.status || 400).json({ error: err.message });
+    }
+  }
+
+  req.session.save(() => {
+    res.redirect(`${paths.post(slug)}#reactions`);
   });
 }
 
@@ -466,6 +561,8 @@ module.exports = {
   home,
   blogIndex,
   blogPost,
+  postComment,
+  postReaction,
   categoryArchive,
   tagArchive,
   search,

@@ -1,0 +1,77 @@
+<%- include('layout-top') %>
+
+<header class="admin-page-header admin-page-header--row">
+  <div>
+    <h1>Comments</h1>
+    <p class="lead"><%= total %> in this filter · moderated before public display</p>
+  </div>
+</header>
+
+<div class="admin-filters">
+  <a class="chip <%= statusFilter === 'pending' ? 'is-active' : '' %>" href="<%= paths.admin.comments() %>?status=pending">Pending</a>
+  <a class="chip <%= statusFilter === 'approved' ? 'is-active' : '' %>" href="<%= paths.admin.comments() %>?status=approved">Approved</a>
+  <a class="chip <%= statusFilter === 'rejected' ? 'is-active' : '' %>" href="<%= paths.admin.comments() %>?status=rejected">Rejected</a>
+  <a class="chip <%= statusFilter === 'all' ? 'is-active' : '' %>" href="<%= paths.admin.comments() %>?status=all">All</a>
+</div>
+
+<% if (!items.length) { %>
+<p class="muted">No comments in this filter.</p>
+<% } else { %>
+<ul class="admin-comment-list">
+  <% items.forEach(function (c) { %>
+  <li class="card admin-comment-card">
+    <div class="admin-comment-card__head">
+      <strong><%= c.authorName %></strong>
+      <% if (c.authorEmail) { %><span class="muted"><%= c.authorEmail %></span><% } %>
+      <span class="status-pill status-<%= c.status %>"><%= c.status %></span>
+      <time class="muted" datetime="<%= c.createdAt %>"><%= formatDate(c.createdAt) %></time>
+    </div>
+    <p class="admin-comment-card__post">
+      On
+      <% if (c.postSlug) { %>
+      <a href="<%= paths.post(c.postSlug) %>" target="_blank" rel="noopener"><%= c.postTitle || c.postSlug %></a>
+      <% } else { %>
+      <span class="muted">(deleted post)</span>
+      <% } %>
+      · <code><%= c.id %></code>
+    </p>
+    <div class="admin-comment-card__body"><%= c.body %></div>
+    <div class="admin-actions">
+      <% if (c.status !== 'approved') { %>
+      <form method="post" action="<%= paths.admin.commentApprove(c.id) %>">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+        <input type="hidden" name="status" value="<%= statusFilter %>" />
+        <button type="submit" class="btn btn-primary btn-sm">Approve</button>
+      </form>
+      <% } %>
+      <% if (c.status !== 'rejected') { %>
+      <form method="post" action="<%= paths.admin.commentReject(c.id) %>">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+        <input type="hidden" name="status" value="<%= statusFilter %>" />
+        <button type="submit" class="btn btn-ghost btn-sm">Reject</button>
+      </form>
+      <% } %>
+      <form method="post" action="<%= paths.admin.commentDelete(c.id) %>" onsubmit="return confirm('Delete this comment permanently?');">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+        <input type="hidden" name="status" value="<%= statusFilter %>" />
+        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+      </form>
+    </div>
+  </li>
+  <% }) %>
+</ul>
+<% } %>
+
+<% if (totalPages > 1) { %>
+<nav class="pagination" aria-label="Comments pagination">
+  <% if (page > 1) { %>
+  <a class="btn btn-ghost btn-sm" href="<%= paths.admin.comments() %>?status=<%= statusFilter %>&page=<%= page - 1 %>">← Prev</a>
+  <% } %>
+  <span class="pagination__status">Page <%= page %> / <%= totalPages %></span>
+  <% if (page < totalPages) { %>
+  <a class="btn btn-ghost btn-sm" href="<%= paths.admin.comments() %>?status=<%= statusFilter %>&page=<%= page + 1 %>">Next →</a>
+  <% } %>
+</nav>
+<% } %>
+
+<%- include('layout-bottom') %>

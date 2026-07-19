@@ -12,6 +12,7 @@ const {
   exposeAdminLocals,
 } = require('../middleware/auth');
 const { handleUpload, uploadLimiter } = require('../middleware/upload');
+const { loginLimiter, writeLimiter } = require('../middleware/security');
 
 const router = express.Router();
 
@@ -20,7 +21,12 @@ router.use(flashMiddleware);
 
 // Public within /admin: login
 router.get('/login', redirectIfAuthenticated, exposeAdminLocals, adminController.loginForm);
-router.post('/login', redirectIfAuthenticated, adminController.loginSubmit);
+router.post(
+  '/login',
+  loginLimiter,
+  redirectIfAuthenticated,
+  adminController.loginSubmit
+);
 
 // Everything else requires auth
 router.use(requireAuth);
@@ -31,15 +37,36 @@ router.post('/logout', verifyCsrf, adminController.logout);
 
 router.get('/posts', adminController.postsList);
 router.get('/posts/new', adminController.postNewGet);
-router.post('/posts', verifyCsrf, adminController.postCreate);
+router.post('/posts', writeLimiter, verifyCsrf, adminController.postCreate);
 
 router.get('/posts/:id/edit', adminController.postEditGet);
-router.post('/posts/:id/edit', verifyCsrf, adminController.postUpdate);
-router.post('/posts/:id/delete', verifyCsrf, adminController.postDelete);
+router.post('/posts/:id/edit', writeLimiter, verifyCsrf, adminController.postUpdate);
+router.post('/posts/:id/delete', writeLimiter, verifyCsrf, adminController.postDelete);
 router.get('/posts/:id/preview', adminController.postPreview);
 
 router.get('/settings', adminController.settingsGet);
-router.post('/settings', verifyCsrf, adminController.settingsPost);
+router.post('/settings', writeLimiter, verifyCsrf, adminController.settingsPost);
+
+// Comment moderation
+router.get('/comments', adminController.commentsList);
+router.post(
+  '/comments/:id/approve',
+  writeLimiter,
+  verifyCsrf,
+  adminController.commentApprove
+);
+router.post(
+  '/comments/:id/reject',
+  writeLimiter,
+  verifyCsrf,
+  adminController.commentReject
+);
+router.post(
+  '/comments/:id/delete',
+  writeLimiter,
+  verifyCsrf,
+  adminController.commentDelete
+);
 
 // Media library
 router.get('/media', mediaController.mediaLibrary);
@@ -51,7 +78,7 @@ router.post(
   verifyCsrf,
   mediaController.mediaUpload
 );
-router.post('/media/:id/delete', verifyCsrf, mediaController.mediaDelete);
-router.post('/media/:id/alt', verifyCsrf, mediaController.mediaUpdateAlt);
+router.post('/media/:id/delete', writeLimiter, verifyCsrf, mediaController.mediaDelete);
+router.post('/media/:id/alt', writeLimiter, verifyCsrf, mediaController.mediaUpdateAlt);
 
 module.exports = router;

@@ -10,9 +10,15 @@
   <link rel="canonical" href="<%= canonicalUrl %>" />
   <% } %>
   <link rel="alternate" type="application/rss+xml" title="<%= siteName %> RSS" href="<%= paths.rss() %>" />
+  <meta property="og:site_name" content="<%= siteName %>" />
   <meta property="og:title" content="<%= typeof title !== 'undefined' && title ? title.replace(/"/g, '&quot;') : siteName %>" />
   <meta property="og:description" content="<%= typeof metaDescription !== 'undefined' && metaDescription ? metaDescription.replace(/"/g, '&quot;') : '' %>" />
   <meta property="og:type" content="<%= typeof post !== 'undefined' && post ? 'article' : 'website' %>" />
+  <meta property="og:url" content="<%= typeof canonicalUrl !== 'undefined' && canonicalUrl ? canonicalUrl : appUrl %>" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="<%= typeof title !== 'undefined' && title ? title.replace(/"/g, '&quot;') : siteName %>" />
+  <meta name="twitter:description" content="<%= typeof metaDescription !== 'undefined' && metaDescription ? metaDescription.replace(/"/g, '&quot;') : '' %>" />
+  <meta name="robots" content="<%= typeof noindex !== 'undefined' && noindex ? 'noindex, nofollow' : 'index, follow' %>" />
   <link rel="stylesheet" href="/css/main.css" />
   <% if (typeof jsonLd !== 'undefined' && jsonLd) { %>
   <script type="application/ld+json"><%- JSON.stringify(jsonLd) %></script>

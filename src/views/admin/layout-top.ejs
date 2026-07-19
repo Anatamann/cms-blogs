@@ -19,6 +19,7 @@
         <a href="<%= paths.admin.home() %>" <%= typeof currentPath !== 'undefined' && currentPath === '/admin' ? 'aria-current="page"' : '' %>>Dashboard</a>
         <a href="<%= paths.admin.posts() %>" <%= typeof currentPath !== 'undefined' && currentPath.indexOf('/admin/posts') === 0 ? 'aria-current="page"' : '' %>>Posts</a>
         <a href="<%= paths.admin.postNew() %>">New</a>
+        <a href="<%= paths.admin.comments() %>" <%= typeof currentPath !== 'undefined' && currentPath.indexOf('/admin/comments') === 0 ? 'aria-current="page"' : '' %>>Comments</a>
         <a href="<%= paths.admin.media() %>" <%= typeof currentPath !== 'undefined' && currentPath.indexOf('/admin/media') === 0 ? 'aria-current="page"' : '' %>>Media</a>
         <a href="<%= paths.admin.settings() %>" <%= typeof currentPath !== 'undefined' && currentPath.indexOf('/admin/settings') === 0 ? 'aria-current="page"' : '' %>>Settings</a>
         <a href="<%= paths.home() %>" target="_blank" rel="noopener">View site</a>

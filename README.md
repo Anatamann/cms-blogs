@@ -12,7 +12,8 @@ Lightweight, Dockerized anime blogging CMS for 1–2 authors. Hybrid 90s retro +
 | **3** | Admin auth + CMS (posts, settings, preview) | Done |
 | **4** | Media library (WebP, GIF, video ≤30MB) | Done |
 | **5** | Retro-modern theme polish + a11y | Done |
-| 6 | Hardening, SEO ops polish | Next |
+| **6** | Hardening, SEO, deploy/ops | Done |
+| 7 | Polish sample content & handoff | Optional |
 
 ## Quick start (local)
 
@@ -37,6 +38,8 @@ Open [http://localhost:3000](http://localhost:3000).
 | `npm run test:phase3` | Admin login/CRUD (set `BASE_URL` for HTTP) |
 | `npm run test:phase4` | Media upload/WebP/delete (set `BASE_URL` for HTTP) |
 | `npm run test:phase5` | Theme tokens / a11y (set `BASE_URL` for HTTP) |
+| `npm run test:phase6` | Security headers / robots (set `BASE_URL` for HTTP) |
+| `npm run backup` | Tar SQLite + uploads → `backups/` |
 | `npm test` | All of the above |
 
 Default seed logins: **aria** / **ken** — password from `SEED_ADMIN_PASSWORD` (default `changeme`).
@@ -116,6 +119,15 @@ Categories: `reviews`, `news`, `fan-theories`. Tags: `mecha`, `shonen`, `classic
 
 Draft posts are never listed or reachable by public slug.
 
+### Engagement
+
+| Feature | Behavior |
+|---------|----------|
+| **Reactions** | 👍 🔥 💜 😮 — toggle per visitor (session); counts on the post |
+| **Comments** | Name + optional email + body; **pending until approved** in Admin → Comments |
+
+Public routes: `POST /blog/:slug/comments`, `POST /blog/:slug/reactions` (slug URLs only).
+
 ## Admin (Phase 3)
 
 | Path | Description |
@@ -151,8 +163,27 @@ Files are named with **UUID**s; post editor has an **Insert media** panel for Ma
 - Markdown images get `loading="lazy"`
 - Admin uses a calmer version of the same tokens
 
-## Next: Phase 6
+## Hardening & ops (Phase 6)
 
-Hardening (Helmet CSP, CSRF audit, rate limits), SEO polish, deploy docs.
+| Control | Detail |
+|---------|--------|
+| Helmet CSP | `default-src 'self'`; frames denied; HSTS in production |
+| Sessions | `httpOnly` + `sameSite=lax`; `secure` in prod; weak `SESSION_SECRET` refused in prod |
+| CSRF | Tokens on admin POST/DELETE/upload |
+| Rate limits | Login, contact, admin writes, media upload |
+| SEO | `/robots.txt` (disallow `/admin`), OG/Twitter meta, `/security.txt` |
+| Health | `/health`, `/health/live`, `/health/ready` |
+| Backup | `npm run backup` / `scripts/restore.sh` |
+
+Deploy guide: **[docs/DEPLOY.md](docs/DEPLOY.md)**
+
+### Security checklist
+
+- [ ] Strong `SESSION_SECRET` (32+ random chars)
+- [ ] Changed admin passwords (`SEED_ADMIN_PASSWORD` / re-seed or DB update)
+- [ ] `AUTO_SEED=false` after initial content
+- [ ] TLS terminator in front of Nginx; `APP_URL` is `https://…`
+- [ ] Scheduled backups of `data/` + uploads
+- [ ] `NODE_ENV=production`
 
 Product brief: `website-instructions-draft.md`.
