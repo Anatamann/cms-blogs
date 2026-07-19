@@ -4,12 +4,23 @@ const mediaService = require('../services/media');
 const { paths } = require('../utils/slug');
 const { isValidId } = require('../utils/uuid');
 const { formatDate } = require('../utils/format');
+const { safeAdminReturnTo, withReturnTo } = require('../utils/returnTo');
+
+function mediaRedirect(basePath, { type, returnTo, page } = {}) {
+  const params = new URLSearchParams();
+  if (type && type !== 'all') params.set('type', type);
+  if (page && Number(page) > 1) params.set('page', String(page));
+  if (returnTo) params.set('returnTo', returnTo);
+  const qs = params.toString();
+  return qs ? `${basePath}?${qs}` : basePath;
+}
 
 function mediaLibrary(req, res) {
   const type = ['image', 'gif', 'video', 'all'].includes(req.query.type)
     ? req.query.type
     : 'all';
   const page = Math.max(1, Number(req.query.page) || 1);
+  const returnTo = safeAdminReturnTo(req.query.returnTo);
 
   const result = mediaService.listMedia({
     type: type === 'all' ? undefined : type,
@@ -24,17 +35,20 @@ function mediaLibrary(req, res) {
     typeFilter: type,
     formatDate,
     error: null,
+    returnTo,
+    withReturnTo,
   });
 }
 
 async function mediaUpload(req, res) {
-  const type = ['image', 'gif', 'video', 'all'].includes(req.query.type)
-    ? req.query.type
+  const type = ['image', 'gif', 'video', 'all'].includes(req.body.type || req.query.type)
+    ? req.body.type || req.query.type
     : 'all';
+  const returnTo = safeAdminReturnTo(req.body.returnTo || req.query.returnTo);
 
   if (!req.file) {
     req.flash('error', 'Choose a file to upload.');
-    return res.redirect(`${paths.admin.media()}?type=${type}`);
+    return res.redirect(mediaRedirect(paths.admin.media(), { type, returnTo }));
   }
 
   try {
@@ -45,11 +59,20 @@ async function mediaUpload(req, res) {
       req.file.mimetype,
       { alt }
     );
-    req.flash('ok', `Uploaded ${item.type}: ${item.filename}`);
-    return res.redirect(`${paths.admin.media()}?type=${type}`);
+    req.flash(
+      'ok',
+      returnTo
+        ? `Uploaded ${item.type}: ${item.filename}. Continue editing your post — use Insert media to embed it.`
+        : `Uploaded ${item.type}: ${item.filename}`
+    );
+    // Prefer returning to the post editor when we came from there
+    if (returnTo) {
+      return res.redirect(returnTo);
+    }
+    return res.redirect(mediaRedirect(paths.admin.media(), { type }));
   } catch (err) {
     req.flash('error', err.message || 'Upload failed.');
-    return res.redirect(`${paths.admin.media()}?type=${type}`);
+    return res.redirect(mediaRedirect(paths.admin.media(), { type, returnTo }));
   }
 }
 
@@ -64,7 +87,8 @@ function mediaDelete(req, res, next) {
     req.flash('error', 'Media not found.');
   }
   const type = req.body.type || req.query.type || 'all';
-  return res.redirect(`${paths.admin.media()}?type=${type}`);
+  const returnTo = safeAdminReturnTo(req.body.returnTo || req.query.returnTo);
+  return res.redirect(mediaRedirect(paths.admin.media(), { type, returnTo }));
 }
 
 function mediaUpdateAlt(req, res, next) {
@@ -79,7 +103,8 @@ function mediaUpdateAlt(req, res, next) {
     req.flash('ok', 'Alt text saved.');
   }
   const type = req.body.type || 'all';
-  return res.redirect(`${paths.admin.media()}?type=${type}`);
+  const returnTo = safeAdminReturnTo(req.body.returnTo || req.query.returnTo);
+  return res.redirect(mediaRedirect(paths.admin.media(), { type, returnTo }));
 }
 
 /**

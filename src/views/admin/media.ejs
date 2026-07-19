@@ -1,11 +1,25 @@
 <%- include('layout-top') %>
 
+<% var ret = typeof returnTo !== 'undefined' && returnTo ? returnTo : ''; %>
+
 <header class="admin-page-header admin-page-header--row">
   <div>
     <h1>Media library</h1>
     <p class="lead"><%= pagination.total %> file<%= pagination.total === 1 ? '' : 's' %> · images → WebP · GIF animation preserved · video ≤ 30MB</p>
   </div>
+  <% if (ret) { %>
+  <div class="admin-actions">
+    <a class="btn btn-primary" href="<%= ret %>">← Back to post editor</a>
+  </div>
+  <% } %>
 </header>
+
+<% if (ret) { %>
+<p class="flash flash-ok" role="status">
+  Your post draft is saved temporarily. Upload a file, then you’ll return to the editor — or use
+  <a href="<%= ret %>"><strong>Back to post editor</strong></a> anytime.
+</p>
+<% } %>
 
 <section class="card media-upload-panel">
   <h2 class="section-title">Upload</h2>
@@ -16,6 +30,8 @@
     class="admin-form media-upload-form"
   >
     <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+    <input type="hidden" name="type" value="<%= typeFilter %>" />
+    <% if (ret) { %><input type="hidden" name="returnTo" value="<%= ret %>" /><% } %>
     <div class="field">
       <label for="file">File</label>
       <input id="file" name="file" type="file" required accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime,.jpg,.jpeg,.png,.webp,.gif,.mp4,.webm,.mov" />
@@ -25,15 +41,15 @@
       <label for="alt">Alt / description</label>
       <input id="alt" name="alt" type="text" maxlength="300" placeholder="Optional alt text" />
     </div>
-    <button type="submit" class="btn btn-primary">Upload</button>
+    <button type="submit" class="btn btn-primary"><%= ret ? 'Upload & return to post' : 'Upload' %></button>
   </form>
 </section>
 
 <div class="admin-filters" style="margin-top:1.25rem">
-  <a class="chip <%= typeFilter === 'all' ? 'is-active' : '' %>" href="<%= paths.admin.media() %>?type=all">All</a>
-  <a class="chip <%= typeFilter === 'image' ? 'is-active' : '' %>" href="<%= paths.admin.media() %>?type=image">Images</a>
-  <a class="chip <%= typeFilter === 'gif' ? 'is-active' : '' %>" href="<%= paths.admin.media() %>?type=gif">GIFs</a>
-  <a class="chip <%= typeFilter === 'video' ? 'is-active' : '' %>" href="<%= paths.admin.media() %>?type=video">Videos</a>
+  <a class="chip <%= typeFilter === 'all' ? 'is-active' : '' %>" href="<%= withReturnTo(paths.admin.media() + '?type=all', ret || null) %>">All</a>
+  <a class="chip <%= typeFilter === 'image' ? 'is-active' : '' %>" href="<%= withReturnTo(paths.admin.media() + '?type=image', ret || null) %>">Images</a>
+  <a class="chip <%= typeFilter === 'gif' ? 'is-active' : '' %>" href="<%= withReturnTo(paths.admin.media() + '?type=gif', ret || null) %>">GIFs</a>
+  <a class="chip <%= typeFilter === 'video' ? 'is-active' : '' %>" href="<%= withReturnTo(paths.admin.media() + '?type=video', ret || null) %>">Videos</a>
 </div>
 
 <% if (!items.length) { %>
@@ -62,10 +78,14 @@
         <button type="button" class="btn btn-ghost btn-sm" data-copy="<%= item.url %>">Copy URL</button>
         <button type="button" class="btn btn-ghost btn-sm" data-copy="<%= item.markdown.trim() %>">Copy MD</button>
         <a class="btn btn-ghost btn-sm" href="<%= item.url %>" target="_blank" rel="noopener">Open</a>
+        <% if (ret) { %>
+        <a class="btn btn-primary btn-sm" href="<%= ret %>">Use in post</a>
+        <% } %>
       </div>
       <form method="post" action="<%= paths.admin.mediaAlt(item.id) %>" class="media-alt-form">
         <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
         <input type="hidden" name="type" value="<%= typeFilter %>" />
+        <% if (ret) { %><input type="hidden" name="returnTo" value="<%= ret %>" /><% } %>
         <label class="sr-only" for="alt-<%= item.id %>">Alt text</label>
         <input id="alt-<%= item.id %>" name="alt" type="text" value="<%= item.alt %>" placeholder="Alt text" maxlength="300" />
         <button type="submit" class="btn btn-ghost btn-sm">Save alt</button>
@@ -73,6 +93,7 @@
       <form method="post" action="<%= paths.admin.mediaDelete(item.id) %>" onsubmit="return confirm('Delete this media file?');">
         <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
         <input type="hidden" name="type" value="<%= typeFilter %>" />
+        <% if (ret) { %><input type="hidden" name="returnTo" value="<%= ret %>" /><% } %>
         <button type="submit" class="btn btn-danger btn-sm">Delete</button>
       </form>
     </div>
@@ -83,14 +104,20 @@
 <% if (pagination.totalPages > 1) { %>
 <nav class="pagination" aria-label="Media pagination">
   <% if (pagination.page > 1) { %>
-  <a class="btn btn-ghost btn-sm" href="<%= paths.admin.media() %>?type=<%= typeFilter %>&page=<%= pagination.page - 1 %>">← Prev</a>
+  <a class="btn btn-ghost btn-sm" href="<%= withReturnTo(paths.admin.media() + '?type=' + typeFilter + '&page=' + (pagination.page - 1), ret || null) %>">← Prev</a>
   <% } %>
   <span class="pagination__status">Page <%= pagination.page %> / <%= pagination.totalPages %></span>
   <% if (pagination.page < pagination.totalPages) { %>
-  <a class="btn btn-ghost btn-sm" href="<%= paths.admin.media() %>?type=<%= typeFilter %>&page=<%= pagination.page + 1 %>">Next →</a>
+  <a class="btn btn-ghost btn-sm" href="<%= withReturnTo(paths.admin.media() + '?type=' + typeFilter + '&page=' + (pagination.page + 1), ret || null) %>">Next →</a>
   <% } %>
 </nav>
 <% } %>
+<% } %>
+
+<% if (ret) { %>
+<p style="margin-top:1.5rem">
+  <a class="btn btn-primary" href="<%= ret %>">← Back to post editor</a>
+</p>
 <% } %>
 
 <%- include('layout-bottom') %>

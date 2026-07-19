@@ -72,10 +72,20 @@
   <div class="media-embed-panel card" data-media-embed>
     <div class="media-embed-header">
       <h2 class="section-title" style="margin:0">Insert media</h2>
-      <a class="btn btn-ghost btn-sm" href="<%= paths.admin.media() %>" target="_blank" rel="noopener">Open library</a>
-      <button type="button" class="btn btn-ghost btn-sm" data-media-refresh>Refresh</button>
+      <button
+        type="submit"
+        class="btn btn-ghost btn-sm"
+        formaction="<%= paths.admin.postDraft() %>"
+        formmethod="post"
+        formnovalidate
+        title="Saves your post draft, then opens the media library. After upload you return here."
+      >Upload / open library</button>
+      <button type="button" class="btn btn-ghost btn-sm" data-media-refresh>Refresh list</button>
     </div>
-    <p class="field-hint">Click a file to append Markdown / video embed at the cursor in the body.</p>
+    <p class="field-hint">
+      <strong>Upload / open library</strong> keeps this post as a temporary draft, then returns you here after upload.
+      Or pick a file below to insert Markdown into the body.
+    </p>
     <div class="media-embed-grid" data-media-list>
       <p class="muted">Loading…</p>
     </div>

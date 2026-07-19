@@ -37,3 +37,6 @@ coverage/
 dist/
 tmp/
 backups/
+
+#Docs
+CREATE-POST.md

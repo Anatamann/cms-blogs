@@ -11,6 +11,7 @@ const { paths, slugify, isValidSlug } = require('../utils/slug');
 const { isValidId } = require('../utils/uuid');
 const { renderMarkdown, plainExcerpt } = require('../utils/markdown');
 const { formatDate } = require('../utils/format');
+const { safeAdminReturnTo } = require('../utils/returnTo');
 
 function asArray(value) {
   if (value == null || value === '') return [];
@@ -388,18 +389,13 @@ function postDelete(req, res, next) {
 }
 
 /**
- * Preview current form fields without saving (create or edit).
- * Stores draft in session so "Back to editor" restores fields.
+ * Persist current editor fields in session (create or edit).
+ * @returns {{ mode: string, postId: string|null, editorHref: string }}
  */
-function postPreviewForm(req, res) {
+function saveFormDraftFromRequest(req) {
   const data = parsePostBody(req);
   const mode = req.body._mode === 'edit' ? 'edit' : 'create';
   const postId = isValidId(req.body._postId) ? req.body._postId : null;
-
-  if (mode === 'edit' && !postId) {
-    req.flash('error', 'Missing post id for edit preview.');
-    return res.redirect(paths.admin.posts());
-  }
 
   const categoryIds = asArray(req.body.categoryIds).filter(isValidId);
   const tagIds = asArray(req.body.tagIds).filter(isValidId);
@@ -421,10 +417,51 @@ function postPreviewForm(req, res) {
     newTags,
   };
 
+  const editorHref =
+    mode === 'edit' && postId ? paths.admin.postEdit(postId) : paths.admin.postNew();
+
+  return { mode, postId, editorHref, data };
+}
+
+/**
+ * Save draft then open media library; after upload, return to the editor.
+ */
+function postDraftForMedia(req, res) {
+  const mode = req.body._mode === 'edit' ? 'edit' : 'create';
+  const postId = isValidId(req.body._postId) ? req.body._postId : null;
+
+  if (mode === 'edit' && !postId) {
+    req.flash('error', 'Missing post id.');
+    return res.redirect(paths.admin.posts());
+  }
+
+  const { editorHref } = saveFormDraftFromRequest(req);
+  const mediaUrl = `${paths.admin.media()}?returnTo=${encodeURIComponent(editorHref)}`;
+
+  req.flash('ok', 'Post draft saved temporarily. Upload media, then return to your post.');
+  req.session.save(() => {
+    res.redirect(mediaUrl);
+  });
+}
+
+/**
+ * Preview current form fields without saving (create or edit).
+ * Stores draft in session so "Back to editor" restores fields.
+ */
+function postPreviewForm(req, res) {
+  const mode = req.body._mode === 'edit' ? 'edit' : 'create';
+  const postId = isValidId(req.body._postId) ? req.body._postId : null;
+
+  if (mode === 'edit' && !postId) {
+    req.flash('error', 'Missing post id for edit preview.');
+    return res.redirect(paths.admin.posts());
+  }
+
+  const { editorHref, data } = saveFormDraftFromRequest(req);
+
   const slugGuess =
-    slugify(data.slug || data.title || '') || (mode === 'edit' && postId
-      ? postsService.getById(postId)?.slug
-      : null) ||
+    slugify(data.slug || data.title || '') ||
+    (mode === 'edit' && postId ? postsService.getById(postId)?.slug : null) ||
     'untitled';
 
   const bodyHtml = renderMarkdown(data.bodyMd || '');
@@ -436,9 +473,6 @@ function postPreviewForm(req, res) {
         username: req.session.user.username,
       }
     : null;
-
-  const backHref =
-    mode === 'edit' && postId ? paths.admin.postEdit(postId) : paths.admin.postNew();
 
   req.session.save(() => {
     res.render('admin/preview', {
@@ -456,7 +490,7 @@ function postPreviewForm(req, res) {
       },
       isDraft: data.status !== 'published',
       isFormPreview: true,
-      backHref,
+      backHref: editorHref,
     });
   });
 }
@@ -554,6 +588,7 @@ module.exports = {
   postDelete,
   postPreview,
   postPreviewForm,
+  postDraftForMedia,
   settingsGet,
   settingsPost,
   commentsList,

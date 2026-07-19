@@ -121,6 +121,8 @@ const paths = {
     postPreview: (id) => `/admin/posts/${id}/preview`,
     /** Form preview — current editor fields, not saved to DB. */
     postPreviewForm: () => '/admin/posts/preview',
+    /** Save editor draft to session, then continue (e.g. media library). */
+    postDraft: () => '/admin/posts/draft',
     media: () => '/admin/media',
     mediaUpload: () => '/admin/media/upload',
     mediaDelete: (id) => `/admin/media/${id}/delete`,

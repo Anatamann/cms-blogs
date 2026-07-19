@@ -176,7 +176,8 @@ Files are named with **UUID**s; post editor has an **Insert media** panel for Ma
 | Health | `/health`, `/health/live`, `/health/ready` |
 | Backup | `npm run backup` / `scripts/restore.sh` |
 
-Deploy guide: **[docs/DEPLOY.md](docs/DEPLOY.md)**
+Deploy guide: **[docs/DEPLOY.md](docs/DEPLOY.md)**  
+Author guide (how to write a post + Markdown): **[docs/CREATE-POST.md](docs/CREATE-POST.md)**
 
 ### Security checklist
 
