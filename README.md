@@ -177,7 +177,8 @@ Files are named with **UUID**s; post editor has an **Insert media** panel for Ma
 | Backup | `npm run backup` / `scripts/restore.sh` |
 
 Deploy guide: **[docs/DEPLOY.md](docs/DEPLOY.md)**  
-Author guide (how to write a post + Markdown): **[docs/CREATE-POST.md](docs/CREATE-POST.md)**
+Author guide (how to write a post + Markdown): **[docs/CREATE-POST.md](docs/CREATE-POST.md)**  
+Homepage scroll animation assets: **[docs/HOME-SCROLL-ANIMATION.md](docs/HOME-SCROLL-ANIMATION.md)**
 
 ### Security checklist
 
