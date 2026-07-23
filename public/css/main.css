@@ -340,6 +340,356 @@ a:hover {
   opacity: 0.85;
 }
 
+/* —— Full-page scroll-scrub (homepage) —— */
+body.has-home-scroll {
+  background-attachment: scroll;
+}
+
+body.has-home-scroll .site-main {
+  /* Flush under sticky header — no phantom top gap */
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+body.has-home-scroll .site-footer {
+  position: relative;
+  z-index: 2;
+  background: rgba(10, 10, 15, 0.92);
+  backdrop-filter: blur(8px);
+}
+
+.home-scroll {
+  --scroll-p: 0;
+  --header-offset: 4.25rem; /* sticky nav clearance */
+  position: relative;
+  min-height: 0;
+}
+
+.home-scroll__stage {
+  --stage-shift: 0%;
+  position: fixed;
+  /* Sit under the sticky header so the film starts in the content band */
+  top: var(--header-offset);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background: #000;
+  /* Promote to compositor layer for smooth parallax */
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+.home-scroll__canvas,
+.home-scroll__poster {
+  position: absolute;
+  /* Slight overscan so parallax shift never shows edges */
+  inset: -4%;
+  width: 108%;
+  height: 108%;
+  left: -4%;
+  top: -4%;
+  object-fit: cover;
+  filter: saturate(1.08) contrast(1.06);
+  transform: translate3d(0, calc(var(--scroll-p, 0) * -2.5%), 0)
+    scale(calc(1.04 + var(--scroll-p, 0) * 0.07));
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+.home-scroll__canvas {
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.home-scroll__canvas.is-ready {
+  opacity: 1;
+}
+
+.home-scroll__canvas.is-hidden {
+  display: none;
+}
+
+.home-scroll__poster {
+  opacity: 1;
+  transition: opacity 0.35s ease;
+  z-index: 0;
+}
+
+.home-scroll__poster.is-visible {
+  opacity: 1;
+  z-index: 1;
+}
+
+.home-scroll__canvas.is-ready + .home-scroll__poster,
+.home-scroll__stage .home-scroll__poster:not(.is-visible) {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.home-scroll__veil {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(10, 10, 15, 0.55) 0%,
+      rgba(10, 10, 15, calc(0.45 + var(--scroll-p) * 0.25)) 40%,
+      rgba(10, 10, 15, calc(0.75 + var(--scroll-p) * 0.15)) 100%
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 2px,
+      rgba(0, 0, 0, 0.1) 2px,
+      rgba(0, 0, 0, 0.1) 4px
+    );
+}
+
+.home-scroll__progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  z-index: 2;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.home-scroll__progress-bar {
+  height: 100%;
+  width: 100%;
+  transform-origin: left center;
+  transform: scaleX(0);
+  background: linear-gradient(90deg, var(--magenta), var(--cyan));
+  box-shadow: 0 0 12px rgba(255, 0, 255, 0.45);
+  will-change: transform;
+}
+
+.home-scroll__content {
+  position: relative;
+  z-index: 1;
+  /* Scroll runway: long enough to scrub the clip, not a huge empty first screen */
+  min-height: 220vh;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-bottom: 4rem;
+}
+
+.home-scroll__intro {
+  /* Content starts just under the nav — no large empty band */
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding-top: calc(var(--header-offset) + 1.25rem);
+  padding-bottom: 2.5rem;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+.home-scroll__title {
+  text-shadow: 0 2px 28px rgba(0, 0, 0, 0.8);
+}
+
+.home-scroll__lead {
+  color: rgba(245, 245, 255, 0.9);
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.7);
+  max-width: 36rem;
+}
+
+.home-scroll__hint {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  margin: 0 0 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: opacity 0.35s ease;
+  text-shadow: 0 0 12px rgba(0, 255, 255, 0.35);
+}
+
+.home-scroll__hint.is-faded {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.home-scroll__hint-icon {
+  display: inline-block;
+  animation: scroll-hint-bounce 1.4s ease-in-out infinite;
+}
+
+@keyframes scroll-hint-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+}
+
+.home-scroll__main {
+  padding-top: 2rem;
+  padding-bottom: 3rem;
+  flex: 1 0 auto;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+.home-scroll__panel {
+  /* Light glass shell — video shows through; cards have stronger glass */
+  background: rgba(12, 12, 18, 0.28);
+  border: 1px solid rgba(0, 255, 255, 0.18);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.35rem 1.5rem;
+  backdrop-filter: blur(8px) saturate(1.2);
+  -webkit-backdrop-filter: blur(8px) saturate(1.2);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+}
+
+.home-scroll__panel--side {
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.home-scroll__panel--side .sidebar {
+  position: static;
+}
+
+.home-scroll__panel--side .sidebar-block {
+  background: rgba(12, 12, 18, 0.42);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  backdrop-filter: blur(14px) saturate(1.25);
+  -webkit-backdrop-filter: blur(14px) saturate(1.25);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+}
+
+/* Glass blog cards over scroll video */
+.home-scroll .post-card {
+  background: rgba(18, 18, 28, 0.38);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(16px) saturate(1.35);
+  -webkit-backdrop-filter: blur(16px) saturate(1.35);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.home-scroll .post-card:hover {
+  background: rgba(24, 20, 36, 0.48);
+  border-color: rgba(255, 0, 255, 0.45);
+  box-shadow:
+    0 0 24px rgba(255, 0, 255, 0.22),
+    0 8px 32px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* Softer scanlines so video peeks through */
+.home-scroll .post-card.scanlines::after {
+  opacity: 0.18;
+}
+
+.home-scroll .post-card__title a {
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.55);
+}
+
+.home-scroll .post-card__excerpt,
+.home-scroll .post-card__meta {
+  color: rgba(200, 200, 220, 0.92);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
+}
+
+.home-scroll__outro {
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+  background: rgba(12, 12, 18, 0.4);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* GPU-friendly glass cards (avoid repainting blur every frame if possible) */
+.home-scroll .post-card {
+  transform: translateZ(0);
+}
+
+.home-scroll--static .home-scroll__hint,
+.home-scroll--static .home-scroll__progress {
+  display: none;
+}
+
+.home-scroll--static .home-scroll,
+.home-scroll--static.home-scroll {
+  min-height: 0;
+}
+
+.home-scroll--static .home-scroll__content {
+  min-height: 0;
+}
+
+.home-scroll--static .home-scroll__canvas,
+.home-scroll--static .home-scroll__poster {
+  transform: none;
+}
+
+.home-scroll--static .home-scroll__canvas {
+  display: none;
+}
+
+.home-scroll--static .home-scroll__poster {
+  opacity: 1 !important;
+}
+
+@media (max-width: 800px) {
+  .home-scroll {
+    --header-offset: 5.5rem; /* taller wrapped nav */
+  }
+
+  .home-scroll__content {
+    min-height: 200vh;
+  }
+
+  .home-scroll__intro {
+    padding-top: calc(var(--header-offset) + 0.85rem);
+    padding-bottom: 2rem;
+  }
+
+  .home-scroll__title {
+    font-size: clamp(1.5rem, 7vw, 2rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-scroll__hint-icon {
+    animation: none !important;
+  }
+
+  .home-scroll__content {
+    min-height: 0;
+  }
+
+  .home-scroll__stage {
+    top: var(--header-offset);
+  }
+
+  .home-scroll__canvas,
+  .home-scroll__poster {
+    transform: none !important;
+  }
+}
+
 /* —— Hero —— */
 .hero {
   padding: 2.25rem 0 2.75rem;

@@ -17,5 +17,11 @@
     </div>
   </footer>
   <script src="/js/main.js" defer></script>
+  <% if (typeof pageScripts !== 'undefined' && pageScripts && pageScripts.length) { %>
+    <% pageScripts.forEach(function (src) { %>
+  <script src="<%= src %>" defer></script>
+    <% }) %>
+  <% } %>
 </body>
 </html>
+

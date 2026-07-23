@@ -119,6 +119,7 @@ function home(req, res) {
     siteDescription: meta.siteDescription,
     canonicalUrl: absoluteUrl(config.appUrl, paths.home()),
     posts: latest.items.map(presentPostCard),
+    pageScripts: ['/js/home-scroll.js'],
     ...sidebarData(),
   });
 }
