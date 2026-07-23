@@ -154,8 +154,8 @@ cat public/videos/hero-frames/manifest.json
 
 | Situation | Value |
 |-----------|--------|
-| Current default pack | `55` |
-| After re-export with 80 files | `80` |
+| After extract, use `manifest.json` → `frameCount` | e.g. `123` at FPS=30 |
+| Must equal `ls public/videos/hero-frames/frame-*.webp | wc -l` | always |
 
 Leave these unless you change naming:
 
