@@ -11,6 +11,6 @@ const router = express.Router();
 router.use(health);
 router.use(seo);
 router.use(publicRoutes);
-router.use('/admin', adminRoutes);
+router.use('/mantri', adminRoutes);
 
 module.exports = router;

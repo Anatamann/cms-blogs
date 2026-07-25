@@ -80,6 +80,8 @@ const tags = sqliteTable(
     id: text('id').primaryKey().notNull(),
     name: text('name').notNull(),
     slug: text('slug').notNull(),
+    /** Optional blurb for genre/topic pages (sidebar, archives). */
+    description: text('description').notNull().default(''),
     createdAt: text('created_at')
       .notNull()
       .default(sql`(datetime('now'))`),

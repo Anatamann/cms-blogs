@@ -63,9 +63,9 @@ docker compose up --build -d
 - `/category/:slug`, `/tag/:slug`
 - Pagination: `/blog?page=2`
 
-**Admin** (Phase 3) — UUID for stable edits:
+**CMS** (Phase 3) — path prefix `/mantri` (not linked in public nav); UUID for stable edits:
 
-- `/admin/posts/:id/edit`
+- `/mantri/posts/:id/edit`
 
 **Database** — UUID v4 TEXT, lowercase `8-4-4-4-12` for all content PKs/FKs. Unique `slug` columns power public routes.
 
@@ -129,21 +129,23 @@ Draft posts are never listed or reachable by public slug.
 
 Public routes: `POST /blog/:slug/comments`, `POST /blog/:slug/reactions` (slug URLs only).
 
-## Admin (Phase 3)
+## CMS — `/mantri` (Phase 3)
+
+Not shown in the public navbar. Open via URL, e.g. `/mantri/login`.
 
 | Path | Description |
 |------|-------------|
-| `/admin/login` | Session login (bcrypt) |
-| `/admin` | Dashboard stats |
-| `/admin/posts` | List / filter draft·published |
-| `/admin/posts/new` | Create (Markdown) |
-| `/admin/posts/:id/edit` | Edit by **UUID** |
-| `/admin/posts/:id/preview` | Auth-only preview (drafts OK) |
-| `/admin/settings` | Site title, description, author bios |
-| `/admin/media` | Media library (upload / copy / delete) |
-| `/admin/logout` | POST logout |
+| `/mantri/login` | Session login (bcrypt) |
+| `/mantri` | Dashboard stats |
+| `/mantri/posts` | List / filter draft·published |
+| `/mantri/posts/new` | Create (Markdown) |
+| `/mantri/posts/:id/edit` | Edit by **UUID** |
+| `/mantri/posts/:id/preview` | Auth-only preview (drafts OK) |
+| `/mantri/settings` | Site title, description, author bios |
+| `/mantri/media` | Media library (upload / copy / delete) |
+| `/mantri/logout` | POST logout |
 
-Public URLs stay slug-based (`/blog/my-post`). Admin edit URLs use stable UUIDs.
+Public URLs stay slug-based (`/blog/my-post`). CMS edit URLs use stable UUIDs.
 
 ## Media (Phase 4)
 
@@ -172,13 +174,14 @@ Files are named with **UUID**s; post editor has an **Insert media** panel for Ma
 | Sessions | `httpOnly` + `sameSite=lax`; `secure` in prod; weak `SESSION_SECRET` refused in prod |
 | CSRF | Tokens on admin POST/DELETE/upload |
 | Rate limits | Login, contact, admin writes, media upload |
-| SEO | `/robots.txt` (disallow `/admin`), OG/Twitter meta, `/security.txt` |
+| SEO | `/robots.txt` (disallow `/mantri`), OG/Twitter meta, `/security.txt` |
 | Health | `/health`, `/health/live`, `/health/ready` |
 | Backup | `npm run backup` / `scripts/restore.sh` |
 
 Deploy guide: **[docs/DEPLOY.md](docs/DEPLOY.md)**  
 Author guide (how to write a post + Markdown): **[docs/CREATE-POST.md](docs/CREATE-POST.md)**  
-Homepage scroll animation assets: **[docs/HOME-SCROLL-ANIMATION.md](docs/HOME-SCROLL-ANIMATION.md)**
+Homepage scroll animation assets: **[docs/HOME-SCROLL-ANIMATION.md](docs/HOME-SCROLL-ANIMATION.md)**  
+Categories vs tags: **[docs/TAXONOMY-TAGS.md](docs/TAXONOMY-TAGS.md)**
 
 ### Security checklist
 

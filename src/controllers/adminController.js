@@ -148,6 +148,146 @@ function commentsList(req, res) {
   });
 }
 
+// —— Tags (genres / topics) ——
+
+function tagsList(_req, res) {
+  const tags = tagsService.listTagsWithCounts();
+  res.render('admin/tags-list', {
+    title: 'Tags',
+    tags,
+    formatDate,
+  });
+}
+
+function tagNewGet(_req, res) {
+  res.render('admin/tag-form', {
+    title: 'New tag',
+    mode: 'create',
+    tag: { name: '', slug: '', description: '' },
+    error: null,
+  });
+}
+
+async function tagCreate(req, res) {
+  try {
+    const tag = await tagsService.createTag({
+      name: req.body.name,
+      slug: req.body.slug,
+      description: req.body.description,
+    });
+    req.flash('ok', `Tag “${tag.name}” created.`);
+    return res.redirect(paths.admin.tags());
+  } catch (err) {
+    return res.status(err.status || 400).render('admin/tag-form', {
+      title: 'New tag',
+      mode: 'create',
+      tag: {
+        name: req.body.name || '',
+        slug: req.body.slug || '',
+        description: req.body.description || '',
+      },
+      error: err.message || 'Could not create tag.',
+    });
+  }
+}
+
+function tagEditGet(req, res, next) {
+  const { id } = req.params;
+  if (!isValidId(id)) return next();
+  const tag = tagsService.getById(id);
+  if (!tag) return next();
+  res.render('admin/tag-form', {
+    title: `Edit: ${tag.name}`,
+    mode: 'edit',
+    tag,
+    error: null,
+  });
+}
+
+async function tagUpdate(req, res, next) {
+  const { id } = req.params;
+  if (!isValidId(id)) return next();
+  const existing = tagsService.getById(id);
+  if (!existing) return next();
+
+  try {
+    const tag = await tagsService.updateTag(id, {
+      name: req.body.name,
+      slug: req.body.slug,
+      description: req.body.description,
+    });
+    req.flash('ok', `Tag “${tag.name}” saved.`);
+    return res.redirect(paths.admin.tags());
+  } catch (err) {
+    return res.status(err.status || 400).render('admin/tag-form', {
+      title: `Edit: ${existing.name}`,
+      mode: 'edit',
+      tag: {
+        ...existing,
+        name: req.body.name || '',
+        slug: req.body.slug || '',
+        description: req.body.description || '',
+      },
+      error: err.message || 'Could not update tag.',
+    });
+  }
+}
+
+function tagDelete(req, res, next) {
+  const { id } = req.params;
+  if (!isValidId(id)) return next();
+  const existing = tagsService.getById(id);
+  if (!existing) return next();
+  tagsService.deleteTag(id);
+  req.flash('ok', `Tag “${existing.name}” deleted.`);
+  res.redirect(paths.admin.tags());
+}
+
+/**
+ * Import genre list from the site CSV (Category column = tag name).
+ * Path: public/test-blogs/category list for blog website - Sheet1.csv
+ */
+async function tagsImport(req, res) {
+  const fs = require('fs');
+  const path = require('path');
+  const csvPath = path.join(
+    config.rootDir,
+    'public/test-blogs/category list for blog website - Sheet1.csv'
+  );
+
+  if (!fs.existsSync(csvPath)) {
+    req.flash('error', 'CSV not found at public/test-blogs/…Sheet1.csv');
+    return res.redirect(paths.admin.tags());
+  }
+
+  try {
+    const raw = fs.readFileSync(csvPath, 'utf8');
+    const lines = raw.split(/\r?\n/).filter((l) => l.trim());
+    // skip header
+    const items = [];
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i];
+      // simple CSV: first comma separates name from description (descriptions have no commas in this file)
+      const idx = line.indexOf(',');
+      if (idx === -1) continue;
+      const name = line.slice(0, idx).trim().replace(/^"|"$/g, '');
+      const description = line.slice(idx + 1).trim().replace(/^"|"$/g, '');
+      if (name && name.toLowerCase() !== 'category') {
+        items.push({ name, description });
+      }
+    }
+
+    const result = await tagsService.upsertMany(items);
+    req.flash(
+      'ok',
+      `Import done: ${result.created} created, ${result.updated} updated (description), ${result.skipped} already present.`
+    );
+  } catch (err) {
+    req.flash('error', err.message || 'Import failed.');
+  }
+  return res.redirect(paths.admin.tags());
+}
+
 function commentApprove(req, res, next) {
   const { id } = req.params;
   if (!isValidId(id)) return next();
@@ -595,6 +735,13 @@ module.exports = {
   commentApprove,
   commentReject,
   commentDelete,
+  tagsList,
+  tagNewGet,
+  tagCreate,
+  tagEditGet,
+  tagUpdate,
+  tagDelete,
+  tagsImport,
   // exported for tests
   resolveTaxonomies,
   isValidSlug,

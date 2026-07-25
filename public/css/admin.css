@@ -249,6 +249,40 @@
   font-size: 0.85rem;
 }
 
+.admin-row-actions form {
+  display: inline;
+}
+
+.admin-row-actions .linkish-danger {
+  background: none;
+  border: none;
+  color: var(--magenta);
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.admin-tag-desc {
+  max-width: 28rem;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.admin-taxonomy-help ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.admin-taxonomy-help li {
+  margin-bottom: 0.35rem;
+}
+
 .status-pill {
   display: inline-block;
   font-size: 0.75rem;

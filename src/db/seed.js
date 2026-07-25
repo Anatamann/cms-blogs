@@ -136,9 +136,9 @@ async function seed() {
 
   db.insert(tags)
     .values([
-      { id: IDS.tagMecha, name: 'Mecha', slug: 'mecha', createdAt: ts },
-      { id: IDS.tagShonen, name: 'Shonen', slug: 'shonen', createdAt: ts },
-      { id: IDS.tagClassic, name: 'Classic', slug: 'classic', createdAt: ts },
+      { id: IDS.tagMecha, name: 'Mecha', slug: 'mecha', description: '', createdAt: ts },
+      { id: IDS.tagShonen, name: 'Shonen', slug: 'shonen', description: '', createdAt: ts },
+      { id: IDS.tagClassic, name: 'Classic', slug: 'classic', description: '', createdAt: ts },
     ])
     .run();
 

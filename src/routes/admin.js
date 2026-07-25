@@ -60,6 +60,15 @@ router.get('/posts/:id/preview', adminController.postPreview);
 router.get('/settings', adminController.settingsGet);
 router.post('/settings', writeLimiter, verifyCsrf, adminController.settingsPost);
 
+// Tags (genres / topics)
+router.get('/tags', adminController.tagsList);
+router.get('/tags/new', adminController.tagNewGet);
+router.post('/tags', writeLimiter, verifyCsrf, adminController.tagCreate);
+router.post('/tags/import', writeLimiter, verifyCsrf, adminController.tagsImport);
+router.get('/tags/:id/edit', adminController.tagEditGet);
+router.post('/tags/:id/edit', writeLimiter, verifyCsrf, adminController.tagUpdate);
+router.post('/tags/:id/delete', writeLimiter, verifyCsrf, adminController.tagDelete);
+
 // Comment moderation
 router.get('/comments', adminController.commentsList);
 router.post(

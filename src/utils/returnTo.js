@@ -10,7 +10,7 @@ function safeAdminReturnTo(value) {
   try {
     const u = new URL(value, 'http://ainme.local');
     if (u.origin !== 'http://ainme.local') return null;
-    if (!u.pathname.startsWith('/admin')) return null;
+    if (!u.pathname.startsWith('/mantri')) return null;
     // block protocol-relative weirdness
     if (value.startsWith('//')) return null;
     return `${u.pathname}${u.search}`;

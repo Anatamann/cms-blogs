@@ -77,12 +77,12 @@
   async function loadMedia() {
     list.innerHTML = '<p class="muted">Loading…</p>';
     try {
-      const res = await fetch('/admin/media.json', { credentials: 'same-origin' });
+      const res = await fetch('/mantri/media.json', { credentials: 'same-origin' });
       if (!res.ok) throw new Error('Failed to load media');
       const data = await res.json();
       if (!data.items || !data.items.length) {
         list.innerHTML =
-          '<p class="muted">No media yet. <a href="/admin/media">Upload in the library</a>.</p>';
+          '<p class="muted">No media yet. <a href="/mantri/media">Upload in the library</a>.</p>';
         return;
       }
       list.innerHTML = '';

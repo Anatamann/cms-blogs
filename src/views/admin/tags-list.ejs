@@ -1,0 +1,64 @@
+<%- include('layout-top') %>
+
+<header class="admin-page-header admin-page-header--row">
+  <div>
+    <h1>Tags</h1>
+    <p class="lead">
+      Genres and topics (e.g. Action, Isekai). Use <strong>categories</strong> for content type (Review, News).
+      <%= tags.length %> tag<%= tags.length === 1 ? '' : 's' %>.
+    </p>
+  </div>
+  <div class="admin-actions">
+    <a class="btn btn-primary" href="<%= paths.admin.tagNew() %>">New tag</a>
+    <form method="post" action="<%= paths.admin.tagsImport() %>" style="display:inline" onsubmit="return confirm('Import genres from public/test-blogs/…Sheet1.csv? Existing names are skipped.');">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+      <button type="submit" class="btn btn-ghost">Import from CSV</button>
+    </form>
+  </div>
+</header>
+
+<% if (!tags.length) { %>
+<p class="muted">No tags yet. Create one or import the genre CSV.</p>
+<% } else { %>
+<table class="admin-table">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Slug</th>
+      <th>Posts</th>
+      <th>Description</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% tags.forEach(function (t) { %>
+    <tr>
+      <td><strong><%= t.name %></strong></td>
+      <td><code><%= t.slug %></code></td>
+      <td class="muted"><%= t.postCount || 0 %></td>
+      <td class="muted admin-tag-desc"><%= t.description || '—' %></td>
+      <td class="admin-row-actions">
+        <a href="<%= paths.tag(t.slug) %>" target="_blank" rel="noopener">View</a>
+        · <a href="<%= paths.admin.tagEdit(t.id) %>">Edit</a>
+        ·
+        <form method="post" action="<%= paths.admin.tagDelete(t.id) %>" style="display:inline" onsubmit="return confirm('Delete tag “<%= t.name %>”? Posts keep their content; the tag is only unlinked.');">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+          <button type="submit" class="linkish-danger">Delete</button>
+        </form>
+      </td>
+    </tr>
+    <% }) %>
+  </tbody>
+</table>
+<% } %>
+
+<section class="card admin-taxonomy-help" style="margin-top:1.5rem">
+  <h2 class="section-title">How tags fit the site</h2>
+  <ul class="muted">
+    <li><strong>Categories</strong> = content type (Reviews, News, Fan Theories) — fewer, stable.</li>
+    <li><strong>Tags</strong> = genre/topic (Action, Isekai, Rom-Com) — many, from your CSV or free-form on posts.</li>
+    <li>A post can have one category and several tags.</li>
+  </ul>
+</section>
+
+<%- include('layout-bottom') %>

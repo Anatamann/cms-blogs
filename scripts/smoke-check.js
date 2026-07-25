@@ -44,7 +44,7 @@ async function httpSmoke() {
     ['/', 200],
     ['/health', 200],
     ['/blog', 200],
-    ['/admin', 200],
+    ['/mantri', 200],
     ['/nope-missing', 404],
     ['/blog/', 301],
   ];

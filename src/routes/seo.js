@@ -14,8 +14,8 @@ router.get('/robots.txt', (_req, res) => {
   const body = [
     'User-agent: *',
     'Allow: /',
-    'Disallow: /admin',
-    'Disallow: /admin/',
+    'Disallow: /mantri',
+    'Disallow: /mantri/',
     `Sitemap: ${sitemap}`,
     '',
   ].join('\n');

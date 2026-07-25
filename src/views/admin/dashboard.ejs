@@ -17,6 +17,7 @@
 <p class="admin-actions">
   <a class="btn btn-primary" href="<%= paths.admin.postNew() %>">New post</a>
   <a class="btn btn-ghost" href="<%= paths.admin.posts() %>">All posts</a>
+  <a class="btn btn-ghost" href="<%= paths.admin.tags() %>">Tags (<%= stats.tags %>)</a>
   <a class="btn btn-ghost" href="<%= paths.admin.comments() %>">Moderate comments<% if (stats.pendingComments) { %> (<%= stats.pendingComments %>)<% } %></a>
 </p>
 

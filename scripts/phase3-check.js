@@ -21,7 +21,7 @@ function assert(cond, msg) {
   }
 }
 
-assert(paths.admin.postEdit('a1b2c3d4-e5f6-4a70-8b9c-0d1e2f3a4b5c').includes('/admin/posts/'), 'admin edit path shape');
+assert(paths.admin.postEdit('a1b2c3d4-e5f6-4a70-8b9c-0d1e2f3a4b5c').includes('/mantri/posts/'), 'admin edit path shape');
 assert(
   paths.admin.postEdit('a1b2c3d4-e5f6-4a70-8b9c-0d1e2f3a4b5c').includes('a1b2c3d4-e5f6-4a70-8b9c-0d1e2f3a4b5c'),
   'admin edit uses UUID'
@@ -77,15 +77,15 @@ async function http() {
 
   // Unauthenticated admin home → redirect login
   {
-    const res = await fetch(new URL('/admin', base), { redirect: 'manual' });
-    assert(res.status === 302 || res.status === 301, `unauth /admin redirects (got ${res.status})`);
+    const res = await fetch(new URL('/mantri', base), { redirect: 'manual' });
+    assert(res.status === 302 || res.status === 301, `unauth /mantri redirects (got ${res.status})`);
     const loc = res.headers.get('location') || '';
-    assert(loc.includes('/admin/login'), 'redirect to login');
+    assert(loc.includes('/mantri/login'), 'redirect to login');
   }
 
   // Login page
   {
-    const res = await fetch(new URL('/admin/login', base));
+    const res = await fetch(new URL('/mantri/login', base));
     const html = await res.text();
     cookie = mergeCookies(cookie, res);
     assert(res.status === 200, 'login page 200');
@@ -95,7 +95,7 @@ async function http() {
   // Bad login
   {
     const body = new URLSearchParams({ username: 'aria', password: 'wrong-password' });
-    const res = await fetch(new URL('/admin/login', base), {
+    const res = await fetch(new URL('/mantri/login', base), {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded', Cookie: cookie },
       body,
@@ -110,7 +110,7 @@ async function http() {
   // Good login
   {
     const body = new URLSearchParams({ username: 'aria', password });
-    const res = await fetch(new URL('/admin/login', base), {
+    const res = await fetch(new URL('/mantri/login', base), {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded', Cookie: cookie },
       body,
@@ -118,12 +118,12 @@ async function http() {
     });
     cookie = mergeCookies(cookie, res);
     assert(res.status === 302 || res.status === 303, `login success redirect (got ${res.status})`);
-    assert((res.headers.get('location') || '').includes('/admin'), 'login goes to admin');
+    assert((res.headers.get('location') || '').includes('/mantri'), 'login goes to admin');
   }
 
   // Dashboard
   {
-    const res = await fetch(new URL('/admin', base), { headers: { Cookie: cookie } });
+    const res = await fetch(new URL('/mantri', base), { headers: { Cookie: cookie } });
     const html = await res.text();
     cookie = mergeCookies(cookie, res);
     assert(res.status === 200, 'dashboard 200');
@@ -134,23 +134,23 @@ async function http() {
   let editUrl = '';
   let csrf = '';
   {
-    const res = await fetch(new URL('/admin/posts', base), { headers: { Cookie: cookie } });
+    const res = await fetch(new URL('/mantri/posts', base), { headers: { Cookie: cookie } });
     const html = await res.text();
     cookie = mergeCookies(cookie, res);
     assert(res.status === 200, 'posts list 200');
     assert(html.includes('welcome-to-ainme') || html.includes('Welcome'), 'lists seed posts');
-    const m = html.match(/\/admin\/posts\/([0-9a-f-]{36})\/edit/);
+    const m = html.match(/\/mantri\/posts\/([0-9a-f-]{36})\/edit/);
     assert(!!m, 'edit links use UUID');
     if (m) {
       assert(isValidId(m[1]), 'edit UUID valid v4');
-      editUrl = `/admin/posts/${m[1]}/edit`;
+      editUrl = `/mantri/posts/${m[1]}/edit`;
     }
   }
 
   // Create post
   let createdId = '';
   {
-    const formPage = await fetch(new URL('/admin/posts/new', base), { headers: { Cookie: cookie } });
+    const formPage = await fetch(new URL('/mantri/posts/new', base), { headers: { Cookie: cookie } });
     const formHtml = await formPage.text();
     cookie = mergeCookies(cookie, formPage);
     csrf = extractCsrf(formHtml);
@@ -165,7 +165,7 @@ async function http() {
       status: 'published',
     });
 
-    const res = await fetch(new URL('/admin/posts', base), {
+    const res = await fetch(new URL('/mantri/posts', base), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -177,7 +177,7 @@ async function http() {
     cookie = mergeCookies(cookie, res);
     assert(res.status === 302 || res.status === 303, `create redirects (got ${res.status})`);
     const loc = res.headers.get('location') || '';
-    const m = loc.match(/\/admin\/posts\/([0-9a-f-]{36})\/edit/);
+    const m = loc.match(/\/mantri\/posts\/([0-9a-f-]{36})\/edit/);
     assert(!!m, 'create redirects to UUID edit URL');
     createdId = m ? m[1] : '';
     assert(isValidId(createdId), 'created id is UUID v4');
@@ -194,7 +194,7 @@ async function http() {
 
   // Preview
   {
-    const res = await fetch(new URL(`/admin/posts/${createdId}/preview`, base), {
+    const res = await fetch(new URL(`/mantri/posts/${createdId}/preview`, base), {
       headers: { Cookie: cookie },
     });
     assert(res.status === 200, 'admin preview 200');
@@ -202,7 +202,7 @@ async function http() {
 
   // Settings page + save
   {
-    const formPage = await fetch(new URL('/admin/settings', base), { headers: { Cookie: cookie } });
+    const formPage = await fetch(new URL('/mantri/settings', base), { headers: { Cookie: cookie } });
     const formHtml = await formPage.text();
     cookie = mergeCookies(cookie, formPage);
     csrf = extractCsrf(formHtml);
@@ -214,7 +214,7 @@ async function http() {
       site_description: 'Phase 3 settings check',
       posts_per_page: '10',
     });
-    const res = await fetch(new URL('/admin/settings', base), {
+    const res = await fetch(new URL('/mantri/settings', base), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -229,7 +229,7 @@ async function http() {
 
   // Delete created post
   {
-    const editPage = await fetch(new URL(`/admin/posts/${createdId}/edit`, base), {
+    const editPage = await fetch(new URL(`/mantri/posts/${createdId}/edit`, base), {
       headers: { Cookie: cookie },
     });
     const editHtml = await editPage.text();
@@ -237,7 +237,7 @@ async function http() {
     csrf = extractCsrf(editHtml);
     assert(!!csrf, 'csrf on edit for delete');
 
-    const res = await fetch(new URL(`/admin/posts/${createdId}/delete`, base), {
+    const res = await fetch(new URL(`/mantri/posts/${createdId}/delete`, base), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -257,12 +257,12 @@ async function http() {
 
   // Logout
   {
-    const dash = await fetch(new URL('/admin', base), { headers: { Cookie: cookie } });
+    const dash = await fetch(new URL('/mantri', base), { headers: { Cookie: cookie } });
     const html = await dash.text();
     cookie = mergeCookies(cookie, dash);
     csrf = extractCsrf(html);
     if (csrf) {
-      const res = await fetch(new URL('/admin/logout', base), {
+      const res = await fetch(new URL('/mantri/logout', base), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',

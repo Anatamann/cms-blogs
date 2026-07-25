@@ -1,0 +1,48 @@
+<%- include('layout-top') %>
+
+<header class="admin-page-header">
+  <h1><%= mode === 'create' ? 'New tag' : 'Edit tag' %></h1>
+  <p class="lead">Genre or topic label. Public archive: <code>/tag/&lt;slug&gt;</code></p>
+</header>
+
+<% if (error) { %>
+<p class="flash flash-error" role="alert"><%= error %></p>
+<% } %>
+
+<form
+  method="post"
+  action="<%= mode === 'create' ? paths.admin.tags() : paths.admin.tagEdit(tag.id) %>"
+  class="admin-form"
+>
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+
+  <div class="field">
+    <label for="name">Name</label>
+    <input id="name" name="name" type="text" required maxlength="80" value="<%= tag.name %>" placeholder="e.g. Isekai" />
+  </div>
+
+  <div class="field">
+    <label for="slug">Slug <span class="muted">(URL segment)</span></label>
+    <input id="slug" name="slug" type="text" maxlength="120" value="<%= tag.slug || '' %>" placeholder="auto-from-name" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" />
+    <p class="field-hint">Public path: <code>/tag/<span data-slug-preview><%= tag.slug || '…' %></span></code></p>
+  </div>
+
+  <div class="field">
+    <label for="description">Description</label>
+    <textarea id="description" name="description" rows="4" maxlength="1000" placeholder="What this genre/topic means for readers…"><%= tag.description || '' %></textarea>
+  </div>
+
+  <div class="admin-actions">
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a class="btn btn-ghost" href="<%= paths.admin.tags() %>">Cancel</a>
+  </div>
+</form>
+
+<% if (mode === 'edit') { %>
+<form method="post" action="<%= paths.admin.tagDelete(tag.id) %>" class="admin-danger" onsubmit="return confirm('Delete this tag permanently?');">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+  <button type="submit" class="btn btn-danger">Delete tag</button>
+</form>
+<% } %>
+
+<%- include('layout-bottom') %>

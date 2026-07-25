@@ -72,7 +72,7 @@ async function http() {
   const robots = await fetch(new URL('/robots.txt', base));
   const robotsText = await robots.text();
   assert(robots.status === 200, 'robots.txt 200');
-  assert(robotsText.includes('Disallow: /admin'), 'robots disallows admin');
+  assert(robotsText.includes('Disallow: /mantri'), 'robots disallows admin');
   assert(robotsText.toLowerCase().includes('sitemap:'), 'robots lists sitemap');
 
   const securityTxt = await fetch(new URL('/.well-known/security.txt', base));

@@ -115,10 +115,10 @@ async function http() {
 
   // Login
   {
-    const res = await fetch(new URL('/admin/login', base));
+    const res = await fetch(new URL('/mantri/login', base));
     cookie = mergeCookies(cookie, res);
     const body = new URLSearchParams({ username: 'aria', password });
-    const login = await fetch(new URL('/admin/login', base), {
+    const login = await fetch(new URL('/mantri/login', base), {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded', Cookie: cookie },
       body,
@@ -131,7 +131,7 @@ async function http() {
   // Media page
   let csrf = '';
   {
-    const res = await fetch(new URL('/admin/media', base), { headers: { Cookie: cookie } });
+    const res = await fetch(new URL('/mantri/media', base), { headers: { Cookie: cookie } });
     const html = await res.text();
     cookie = mergeCookies(cookie, res);
     assert(res.status === 200, 'media library 200');
@@ -154,7 +154,7 @@ async function http() {
     form.append('alt', 'phase4 cyan square');
     form.append('file', new Blob([png], { type: 'image/png' }), 'phase4-http.png');
 
-    const res = await fetch(new URL('/admin/media/upload', base), {
+    const res = await fetch(new URL('/mantri/media/upload', base), {
       method: 'POST',
       headers: { Cookie: cookie },
       body: form,
@@ -167,7 +167,7 @@ async function http() {
   // List JSON
   let mediaId = '';
   {
-    const res = await fetch(new URL('/admin/media.json', base), { headers: { Cookie: cookie } });
+    const res = await fetch(new URL('/mantri/media.json', base), { headers: { Cookie: cookie } });
     const data = await res.json();
     assert(res.status === 200, 'media.json 200');
     assert(Array.isArray(data.items) && data.items.length >= 1, 'media.json has items');
@@ -190,7 +190,7 @@ async function http() {
 
   // Reject oversized video metadata path via service already tested; reject bad mime via multer
   {
-    const page = await fetch(new URL('/admin/media', base), { headers: { Cookie: cookie } });
+    const page = await fetch(new URL('/mantri/media', base), { headers: { Cookie: cookie } });
     const html = await page.text();
     cookie = mergeCookies(cookie, page);
     csrf = extractCsrf(html);
@@ -198,7 +198,7 @@ async function http() {
     const form = new FormData();
     form.append('_csrf', csrf);
     form.append('file', new Blob([Buffer.from('not-a-real-video')], { type: 'application/pdf' }), 'x.pdf');
-    const res = await fetch(new URL('/admin/media/upload', base), {
+    const res = await fetch(new URL('/mantri/media/upload', base), {
       method: 'POST',
       headers: { Cookie: cookie },
       body: form,
@@ -210,7 +210,7 @@ async function http() {
 
   // Delete via admin
   {
-    const page = await fetch(new URL('/admin/media', base), { headers: { Cookie: cookie } });
+    const page = await fetch(new URL('/mantri/media', base), { headers: { Cookie: cookie } });
     const html = await page.text();
     cookie = mergeCookies(cookie, page);
     csrf = extractCsrf(html);
@@ -235,7 +235,7 @@ async function http() {
 
   // Unauth media blocked
   {
-    const res = await fetch(new URL('/admin/media', base), { redirect: 'manual' });
+    const res = await fetch(new URL('/mantri/media', base), { redirect: 'manual' });
     assert(res.status === 302, 'unauth media redirects');
   }
 }

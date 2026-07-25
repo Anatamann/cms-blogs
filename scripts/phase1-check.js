@@ -84,7 +84,7 @@ async function run() {
 
   const byId = posts.getById(IDS.postEva);
   assert(!!byId, 'getById uses UUID');
-  assert(paths.admin.postEdit(byId.id) === `/admin/posts/${byId.id}/edit`, 'admin edit path uses UUID');
+  assert(paths.admin.postEdit(byId.id) === `/mantri/posts/${byId.id}/edit`, 'admin edit path uses UUID');
 
   const reviews = posts.listPosts({ categorySlug: 'reviews' });
   assert(reviews.total >= 1, 'filter by category slug');
