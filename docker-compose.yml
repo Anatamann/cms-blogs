@@ -1,32 +1,60 @@
+# Ainme — Docker Compose (app + Nginx)
+#
+# Quick start:
+#   cp .env.example .env
+#   # edit SESSION_SECRET (required in production), APP_URL, SITE_NAME
+#   docker compose up --build -d
+#
+# Site:  http://localhost:${NGINX_HTTP_PORT:-8080}
+# CMS:   http://localhost:${NGINX_HTTP_PORT:-8080}/mantri
+# Health: GET /health
+
 services:
   app:
     build:
       context: .
       dockerfile: docker/Dockerfile
+    image: ainmeblog:latest
     container_name: ainmeblog-app
     restart: unless-stopped
+    stop_grace_period: 15s
+    # Compose auto-loads project `.env` for ${…} interpolation (see .env.docker.example).
+    # All runtime settings are passed explicitly so the container does not depend on a bind-mounted .env.
     environment:
-      NODE_ENV: production
+      NODE_ENV: ${NODE_ENV:-production}
       PORT: 3000
-      SITE_NAME: ${SITE_NAME:-Ainme Blog}
+      SITE_NAME: ${SITE_NAME:-Ainme}
       APP_URL: ${APP_URL:-http://localhost:8080}
-      SESSION_SECRET: ${SESSION_SECRET:-change-me-in-production}
+      # Must be ≥24 random chars in production (app refuses weak defaults)
+      SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET in .env — e.g. openssl rand -hex 32}
       DATA_DIR: /app/data
-      DATABASE_FILE: ainme.sqlite
+      DATABASE_FILE: ${DATABASE_FILE:-ainme.sqlite}
       UPLOADS_DIR: /app/public/uploads
+      # true = ensure catalog posts/tags/work titles on every boot (idempotent)
       AUTO_SEED: ${AUTO_SEED:-true}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-changeme}
+      COMPRESS_VIDEO: ${COMPRESS_VIDEO:-false}
+      RATE_LIMIT_LOGIN: ${RATE_LIMIT_LOGIN:-20}
+      RATE_LIMIT_CONTACT: ${RATE_LIMIT_CONTACT:-15}
+      RATE_LIMIT_WRITE: ${RATE_LIMIT_WRITE:-120}
     volumes:
       - ainme_data:/app/data
       - ainme_uploads:/app/public/uploads
     expose:
       - "3000"
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/health"]
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/health/live"]
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 10s
+      start_period: 25s
+    networks:
+      - ainme
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   nginx:
     image: nginx:1.27-alpine
@@ -39,7 +67,20 @@ services:
       - "${NGINX_HTTP_PORT:-8080}:80"
     volumes:
       - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - ainme
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
 
 volumes:
   ainme_data:
+    name: ainme_data
   ainme_uploads:
+    name: ainme_uploads
+
+networks:
+  ainme:
+    name: ainme_net

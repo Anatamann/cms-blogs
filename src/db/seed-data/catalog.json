@@ -1,0 +1,122 @@
+[
+  {
+    "slug": "welcome-to-ainme",
+    "title": "Welcome to the feed",
+    "excerpt": "Ainme means Anime in Me — who we are, what we watch, and why this couch never gets cold.",
+    "workTitle": "",
+    "workSlug": "",
+    "bodyFile": "welcome-to-ainme.md",
+    "tagNames": [
+      "Classic"
+    ],
+    "categorySlugs": [
+      "news"
+    ]
+  },
+  {
+    "slug": "neon-genesis-evangelion-review",
+    "title": "Neon Genesis Evangelion Review",
+    "excerpt": "A classic mecha series that still rewires your brain.",
+    "workTitle": "Neon Genesis Evangelion",
+    "workSlug": "neon-genesis-evangelion",
+    "bodyFile": "neon-genesis-evangelion-review.md",
+    "tagNames": [
+      "Mecha",
+      "Classic"
+    ],
+    "categorySlugs": [
+      "reviews"
+    ]
+  },
+  {
+    "slug": "spring-season-spotlight",
+    "title": "Spring Season Spotlight",
+    "excerpt": "Three shows worth your weeknights this season.",
+    "workTitle": "",
+    "workSlug": "",
+    "bodyFile": "spring-season-spotlight.md",
+    "tagNames": [
+      "Shonen"
+    ],
+    "categorySlugs": [
+      "news"
+    ]
+  },
+  {
+    "slug": "who-is-the-lcl",
+    "title": "Who Is the LCL?",
+    "excerpt": "A friendly spiral into Eva lore (mild spoilers).",
+    "workTitle": "Neon Genesis Evangelion",
+    "workSlug": "neon-genesis-evangelion",
+    "bodyFile": "who-is-the-lcl.md",
+    "tagNames": [
+      "Mecha"
+    ],
+    "categorySlugs": [
+      "fan-theories"
+    ]
+  },
+  {
+    "slug": "dr-stone-season-2-stone-wars",
+    "title": "Dr. Stone Anime Season 2 Update: A Monumental Evolution",
+    "excerpt": "Season 2 of Dr. Stone, “Stone Wars,” continues Senku’s Kingdom of Science against the Tsukasa Empire with science, strategy, and standout animation.",
+    "workTitle": "Dr. Stone",
+    "workSlug": "dr-stone",
+    "bodyFile": "dr-stone-season-2-stone-wars.md",
+    "tagNames": [
+      "Action",
+      "Comedy"
+    ],
+    "categorySlugs": [
+      "reviews"
+    ]
+  },
+  {
+    "slug": "mushoku-tensei-season-1-recap",
+    "title": "Mushoku Tensei: Jobless Reincarnation — Season 1 Recap",
+    "excerpt": "A full recap of Mushoku Tensei season 1: Rudeus’s second life, Roxy, Eris, the Mana Calamity, and the road to the Demon Continent.",
+    "workTitle": "Mushoku Tensei: Jobless Reincarnation",
+    "workSlug": "mushoku-tensei-jobless-reincarnation",
+    "bodyFile": "mushoku-tensei-season-1-recap.md",
+    "tagNames": [
+      "Isekai",
+      "Action",
+      "Romantic Drama"
+    ],
+    "categorySlugs": [
+      "reviews"
+    ]
+  },
+  {
+    "slug": "mushoku-tensei-season-2-episode-0",
+    "title": "Mushoku Tensei Season 2 — Episode 0: Fitz the Guardian",
+    "excerpt": "Breaking down Episode 0 “Fitz the Guardian”: Sylphiette’s path, Princess Ariel, and Asura Kingdom politics before Season 2 proper.",
+    "workTitle": "Mushoku Tensei: Jobless Reincarnation",
+    "workSlug": "mushoku-tensei-jobless-reincarnation",
+    "bodyFile": "mushoku-tensei-season-2-episode-0.md",
+    "tagNames": [
+      "Isekai",
+      "Periodic",
+      "Romantic Drama"
+    ],
+    "categorySlugs": [
+      "news",
+      "reviews"
+    ]
+  },
+  {
+    "slug": "oshi-no-ko-idol-billboard",
+    "title": "How Oshi no Ko’s Opening Theme Made History on Billboard",
+    "excerpt": "YOASOBI’s “Idol” becomes the first Japanese song to top Billboard Global Excl. U.S. — what powered Oshi no Ko’s global music moment.",
+    "workTitle": "Oshi no Ko",
+    "workSlug": "oshi-no-ko",
+    "bodyFile": "oshi-no-ko-idol-billboard.md",
+    "tagNames": [
+      "Romantic Drama",
+      "Comedy"
+    ],
+    "categorySlugs": [
+      "news"
+    ]
+  }
+]

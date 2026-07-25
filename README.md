@@ -1,6 +1,6 @@
-# Ainme Blog
+# Ainme
 
-Lightweight, Dockerized anime blogging CMS for 1–2 authors. Hybrid 90s retro + modern UX. Stack: Express, EJS, SQLite (Drizzle), Nginx.
+**Ainme** (*Anime in Me*) — Dockerized anime blogging CMS for 1–2 authors. Hybrid 90s retro + modern UX. Stack: Express, EJS, SQLite (Drizzle), Nginx.
 
 ## Status
 
@@ -44,16 +44,34 @@ Open [http://localhost:3000](http://localhost:3000).
 
 Default seed logins: **aria** (password from `SEED_ADMIN_PASSWORD`, default `changeme`) and **gokun** / **Gokun** (display name: Gokun Earthling).
 
-## Docker Compose
+## Docker Compose (production-style)
+
+Full guide: **[docs/DEPLOY.md](docs/DEPLOY.md)**.
 
 ```bash
-cp .env.example .env
+# Production template (strong secret required)
+cp .env.docker.example .env
+openssl rand -hex 32   # paste into SESSION_SECRET in .env
+
+# Edit APP_URL, SEED_ADMIN_PASSWORD, AUTO_SEED as needed
 docker compose up --build -d
 ```
 
-- Site via Nginx: [http://localhost:8080](http://localhost:8080)
-- Health: `GET /health` (includes database status)
-- Volume `ainme_data` holds `ainme.sqlite`
+| | |
+|--|--|
+| Site | [http://localhost:8080](http://localhost:8080) (or `NGINX_HTTP_PORT`) |
+| CMS | [http://localhost:8080/mantri](http://localhost:8080/mantri) |
+| Health | `GET /health`, `/health/live`, `/health/ready` |
+| Data | Volume `ainme_data` → SQLite · `ainme_uploads` → media |
+
+```bash
+docker compose ps
+docker compose logs -f app
+docker compose down          # stop (volumes kept)
+docker compose up --build -d # rebuild after git pull
+```
+
+**Files:** `docker/Dockerfile`, `docker/nginx.conf`, `docker-compose.yml`, `.env.docker.example`.
 
 ## URL & ID conventions
 
@@ -91,17 +109,23 @@ Helpers: `src/utils/slug.js`, `src/utils/uuid.js`. Services: `src/services/*`.
 └── package.json
 ```
 
-## Sample seed content
+## Sample / production seed content
 
-| Slug | Status |
-|------|--------|
-| `welcome-to-ainme` | published |
-| `neon-genesis-evangelion-review` | published |
-| `spring-season-spotlight` | published |
-| `who-is-the-lcl` | published |
-| `work-in-progress-notes` | draft (hidden from public list) |
+Shipped in `src/db/seed-data/` and ensured by `npm run db:seed` / `AUTO_SEED=true` (idempotent — safe on every Docker boot).
 
-Categories: `reviews`, `news`, `fan-theories`. Tags: `mecha`, `shonen`, `classic`.
+| Slug | Work (card) | Notes |
+|------|-------------|--------|
+| `welcome-to-ainme` | — | Brand intro |
+| `neon-genesis-evangelion-review` | Neon Genesis Evangelion | + Mecha, Classic |
+| `who-is-the-lcl` | Neon Genesis Evangelion | Fan theory |
+| `spring-season-spotlight` | — | Seasonal picks |
+| `dr-stone-season-2-stone-wars` | Dr. Stone | Test blog |
+| `mushoku-tensei-season-1-recap` | Mushoku Tensei… | Test blog |
+| `mushoku-tensei-season-2-episode-0` | Mushoku Tensei… | Test blog |
+| `oshi-no-ko-idol-billboard` | Oshi no Ko | Test blog |
+| `work-in-progress-notes` | — | draft (hidden) |
+
+Categories: `reviews`, `news`, `fan-theories`. Genre tags include Action, Comedy, Isekai, Mecha, Romantic Drama, etc.
 
 ## Public routes (Phase 2)
 

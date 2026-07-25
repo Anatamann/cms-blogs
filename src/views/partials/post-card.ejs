@@ -21,16 +21,16 @@
   <% if (post.tags && post.tags.length) { %>
   <p class="post-card__tags">
     <% post.tags.forEach(function (tag) { %>
-    <a href="<%= paths.tag(tag.slug) %>">#<%= tag.slug %></a>
+    <a class="chip chip-tag" href="<%= paths.tag(tag.slug) %>">#<%= tag.name || tag.slug %></a>
     <% }) %>
   </p>
   <% } %>
   <div class="post-card__footer">
     <a class="btn btn-ghost btn-sm post-card__read" href="<%= post.url %>">Read →</a>
     <% if (post.workTitle && post.workUrl) { %>
-    <a class="post-card__work" href="<%= post.workUrl %>" title="All posts about <%= post.workTitle %>"><%= post.workTitle %></a>
+    <a class="post-card__work chip" href="<%= post.workUrl %>" title="All posts about <%= post.workTitle %>"><%= post.workTitle %></a>
     <% } else if (post.workTitle) { %>
-    <span class="post-card__work" title="Anime / manga / work"><%= post.workTitle %></span>
+    <span class="post-card__work chip" title="Anime / manga / work"><%= post.workTitle %></span>
     <% } %>
   </div>
 </article>

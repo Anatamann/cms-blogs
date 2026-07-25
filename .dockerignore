@@ -1,21 +1,53 @@
+# Dependencies & build noise
 node_modules
-npm-debug.log
+npm-debug.log*
+yarn-error.log*
+.npm
+
+# VCS / editor
 .git
 .gitignore
+.gitattributes
+.vscode
+.idea
+*.swp
+*~
+
+# Local env & secrets (compose injects via env_file / -e)
 .env
 .env.*
 !.env.example
-README.md
-website-instructions-draft.md
-data/*.sqlite
-data/*.db
-public/uploads/images/*
-public/uploads/gifs/*
-public/uploads/videos/*
+!.env.docker.example
+
+# Local runtime data (use named volumes in compose)
+data/**
+!data/.gitkeep
+public/uploads/images/**
+public/uploads/gifs/**
+public/uploads/videos/**
 !public/uploads/**/.gitkeep
-.vscode
-.idea
-coverage
-tmp
+backups/**
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.db
+
+# Docs & non-runtime (keep package files)
+website-instructions-draft.md
+docs/**
 *.md
 !README.md
+
+# Tests / checks / host scripts not needed in image
+scripts/phase*.js
+scripts/smoke-check.js
+scripts/extract-hero-frames.sh
+scripts/docker-*.sh
+coverage
+tmp
+.tmp
+# Keep scripts/import-test-blogs.js (copied in Dockerfile) + public/test-blogs/*.odt
+
+# Docker meta (avoid recursive context weirdness)
+docker-compose*.yml
+Dockerfile*
