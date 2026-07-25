@@ -25,7 +25,12 @@
     <% }) %>
   </p>
   <% } %>
-  <p class="post-card__more">
-    <a class="btn btn-ghost btn-sm" href="<%= post.url %>">Read</a>
-  </p>
+  <div class="post-card__footer">
+    <a class="btn btn-ghost btn-sm post-card__read" href="<%= post.url %>">Read</a>
+    <% if (post.workTitle && post.workUrl) { %>
+    <a class="post-card__work" href="<%= post.workUrl %>" title="All posts about <%= post.workTitle %>"><%= post.workTitle %></a>
+    <% } else if (post.workTitle) { %>
+    <span class="post-card__work" title="Anime / manga / work"><%= post.workTitle %></span>
+    <% } %>
+  </div>
 </article>

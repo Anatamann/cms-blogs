@@ -34,6 +34,10 @@ const posts = sqliteTable(
     id: text('id').primaryKey().notNull(),
     slug: text('slug').notNull(),
     title: text('title').notNull(),
+    /** Anime / manga / game / similar work this post is about. */
+    workTitle: text('work_title').notNull().default(''),
+    /** Slug of work_title for /work/:slug archives (empty if no work). */
+    workSlug: text('work_slug').notNull().default(''),
     excerpt: text('excerpt').notNull().default(''),
     bodyMd: text('body_md').notNull().default(''),
     status: text('status').notNull().default('draft'), // draft | published
@@ -55,6 +59,7 @@ const posts = sqliteTable(
     statusIdx: index('posts_status_idx').on(t.status),
     publishedAtIdx: index('posts_published_at_idx').on(t.publishedAt),
     authorIdx: index('posts_author_id_idx').on(t.authorId),
+    workSlugIdx: index('posts_work_slug_idx').on(t.workSlug),
   })
 );
 

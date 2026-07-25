@@ -12,6 +12,16 @@ function nowIso() {
 }
 
 /**
+ * Normalize anime/manga work name into a URL slug (or empty).
+ * @param {string} workTitle
+ */
+function workSlugFromTitle(workTitle) {
+  const t = String(workTitle || '').trim();
+  if (!t) return '';
+  return slugify(t);
+}
+
+/**
  * @param {string} slug
  * @param {string} [excludeId]
  */
@@ -114,7 +124,7 @@ function groupBy(rows, key) {
 }
 
 /**
- * @param {{ page?: number, limit?: number, categorySlug?: string, tagSlug?: string, q?: string, status?: 'published'|'draft'|'all' }} opts
+ * @param {{ page?: number, limit?: number, categorySlug?: string, tagSlug?: string, workSlug?: string, q?: string, status?: 'published'|'draft'|'all' }} opts
  */
 function listPosts(opts = {}) {
   const db = getDb();
@@ -130,9 +140,20 @@ function listPosts(opts = {}) {
     conditions.push(eq(posts.status, status));
   }
 
+  if (opts.workSlug) {
+    conditions.push(eq(posts.workSlug, opts.workSlug));
+  }
+
   if (opts.q) {
     const term = `%${opts.q}%`;
-    conditions.push(or(like(posts.title, term), like(posts.excerpt, term), like(posts.bodyMd, term)));
+    conditions.push(
+      or(
+        like(posts.title, term),
+        like(posts.excerpt, term),
+        like(posts.bodyMd, term),
+        like(posts.workTitle, term)
+      )
+    );
   }
 
   let filteredIds = null;
@@ -255,6 +276,7 @@ function incrementViewCount(id) {
  * @param {{
  *   title: string,
  *   slug?: string,
+ *   workTitle?: string,
  *   excerpt?: string,
  *   bodyMd?: string,
  *   status?: 'draft'|'published',
@@ -277,11 +299,15 @@ async function createPost(input) {
   const ts = nowIso();
   const publishedAt = status === 'published' ? ts : null;
 
+  const workTitle = String(input.workTitle || '').trim().slice(0, 200);
+
   db.insert(posts)
     .values({
       id,
       slug,
       title: input.title,
+      workTitle,
+      workSlug: workSlugFromTitle(workTitle),
       excerpt: input.excerpt || '',
       bodyMd: input.bodyMd || '',
       status,
@@ -302,6 +328,7 @@ async function createPost(input) {
  * @param {{
  *   title?: string,
  *   slug?: string,
+ *   workTitle?: string,
  *   excerpt?: string,
  *   bodyMd?: string,
  *   status?: 'draft'|'published',
@@ -319,6 +346,11 @@ async function updatePost(id, input) {
   const patch = { updatedAt: nowIso() };
 
   if (input.title != null) patch.title = input.title;
+  if (input.workTitle != null) {
+    const workTitle = String(input.workTitle).trim().slice(0, 200);
+    patch.workTitle = workTitle;
+    patch.workSlug = workSlugFromTitle(workTitle);
+  }
   if (input.excerpt != null) patch.excerpt = input.excerpt;
   if (input.bodyMd != null) patch.bodyMd = input.bodyMd;
 
@@ -396,12 +428,30 @@ function deletePost(id) {
   return result.changes > 0;
 }
 
+/**
+ * Resolve display name for a work slug (from any published post).
+ * @param {string} workSlug
+ * @returns {string|null}
+ */
+function getWorkTitleBySlug(workSlug) {
+  if (!workSlug) return null;
+  const db = getDb();
+  const row = db
+    .select({ workTitle: posts.workTitle })
+    .from(posts)
+    .where(and(eq(posts.workSlug, workSlug), eq(posts.status, 'published')))
+    .get();
+  return row?.workTitle || null;
+}
+
 module.exports = {
   slugExists,
   allocateSlug,
+  workSlugFromTitle,
   listPosts,
   getBySlug,
   getById,
+  getWorkTitleBySlug,
   incrementViewCount,
   createPost,
   updatePost,

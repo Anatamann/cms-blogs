@@ -25,6 +25,9 @@ const RESERVED_SLUGS = new Set([
   'settings',
   'comments',
   'reactions',
+  'work',
+  'category',
+  'tag',
 ]);
 
 const SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -103,6 +106,10 @@ const paths = {
   post: (slug) => `/blog/${slug}`,
   category: (slug) => `/category/${slug}`,
   tag: (slug) => `/tag/${slug}`,
+  /** Anime/manga/work archive — slug from work title. */
+  work: (slug) => `/work/${slug}`,
+  workPage: (slug, page) =>
+    page && Number(page) > 1 ? `/work/${slug}?page=${Number(page)}` : `/work/${slug}`,
   search: (q) => (q ? `/search?q=${encodeURIComponent(q)}` : '/search'),
   archive: () => '/archive',
   about: () => '/about',

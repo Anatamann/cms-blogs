@@ -8,6 +8,7 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "db:seed": "node src/db/seed.js",
+    "db:import-test-blogs": "node scripts/import-test-blogs.js",
     "backup": "bash scripts/backup.sh",
     "test:smoke": "node scripts/smoke-check.js",
     "test:phase1": "node scripts/phase1-check.js",

@@ -11,6 +11,11 @@
     <% } %>
     <h1 class="post-page__title"><%= post.title %></h1>
     <p class="post-card__meta">
+      <% if (post.workTitle && post.workUrl) { %>
+      <a class="post-work-title" href="<%= post.workUrl %>" title="All posts about <%= post.workTitle %>"><%= post.workTitle %></a> ·
+      <% } else if (post.workTitle) { %>
+      <span class="post-work-title"><%= post.workTitle %></span> ·
+      <% } %>
       <% if (post.publishedLabel) { %>
       <time datetime="<%= post.publishedAt || post.createdAt %>"><%= post.publishedLabel %></time>
       <% } %>

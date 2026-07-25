@@ -43,6 +43,19 @@
     <input id="title" name="title" type="text" maxlength="200" value="<%= post.title %>" />
   </div>
 
+  <div class="field">
+    <label for="workTitle">Anime / manga / work</label>
+    <input
+      id="workTitle"
+      name="workTitle"
+      type="text"
+      maxlength="200"
+      value="<%= post.workTitle || '' %>"
+      placeholder="e.g. Mushoku Tensei, Oshi no Ko, Attack on Titan"
+    />
+    <p class="field-hint">Name of the series or work this post is about. Shown on post cards next to Read.</p>
+  </div>
+
   <div class="field-row">
     <div class="field">
       <label for="slug">Slug <span class="muted">(public URL segment)</span></label>

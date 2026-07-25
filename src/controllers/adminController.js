@@ -70,12 +70,13 @@ async function resolveTaxonomies(req) {
 function parsePostBody(req) {
   const title = String(req.body.title || '').trim();
   const slug = String(req.body.slug || '').trim();
+  const workTitle = String(req.body.workTitle || '').trim().slice(0, 200);
   const excerpt = String(req.body.excerpt || '').trim();
   const bodyMd = String(req.body.bodyMd || '');
   const status = req.body.status === 'published' ? 'published' : 'draft';
   const updateSlug = req.body.updateSlug === '1' || req.body.updateSlug === 'on';
 
-  return { title, slug, excerpt, bodyMd, status, updateSlug };
+  return { title, slug, workTitle, excerpt, bodyMd, status, updateSlug };
 }
 
 function loginForm(req, res) {
@@ -347,6 +348,7 @@ function postNewGet(req, res) {
     ? {
         title: draft.title || '',
         slug: draft.slug || '',
+        workTitle: draft.workTitle || '',
         excerpt: draft.excerpt || '',
         bodyMd: draft.bodyMd || '',
         status: draft.status || 'draft',
@@ -356,6 +358,7 @@ function postNewGet(req, res) {
     : {
         title: '',
         slug: '',
+        workTitle: '',
         excerpt: '',
         bodyMd: '',
         status: 'draft',
@@ -401,6 +404,7 @@ async function postCreate(req, res) {
     const post = await postsService.createPost({
       title: data.title,
       slug: data.slug || undefined,
+      workTitle: data.workTitle,
       excerpt: data.excerpt,
       bodyMd: data.bodyMd,
       status: data.status,
@@ -441,6 +445,7 @@ function postEditGet(req, res, next) {
         ...post,
         title: draft.title,
         slug: draft.slug,
+        workTitle: draft.workTitle,
         excerpt: draft.excerpt,
         bodyMd: draft.bodyMd,
         status: draft.status,
@@ -489,6 +494,7 @@ async function postUpdate(req, res, next) {
       title: data.title,
       // Manual slug when not regenerating from title
       slug: data.updateSlug ? undefined : data.slug || undefined,
+      workTitle: data.workTitle,
       excerpt: data.excerpt,
       bodyMd: data.bodyMd,
       status: data.status,
@@ -547,6 +553,7 @@ function saveFormDraftFromRequest(req) {
     postId,
     title: data.title,
     slug: data.slug,
+    workTitle: data.workTitle,
     excerpt: data.excerpt,
     bodyMd: data.bodyMd,
     status: data.status,

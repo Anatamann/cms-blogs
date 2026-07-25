@@ -19,6 +19,7 @@ router.post('/blog/:slug/reactions', reactionLimiter, publicController.postReact
 router.get('/blog/:slug', publicController.blogPost);
 router.get('/category/:slug', publicController.categoryArchive);
 router.get('/tag/:slug', publicController.tagArchive);
+router.get('/work/:slug', publicController.workArchive);
 router.get(paths.search(), publicController.search);
 router.get(paths.archive(), publicController.archive);
 router.get(paths.about(), publicController.about);

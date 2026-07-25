@@ -8,7 +8,7 @@ const settingsService = require('../services/settings');
 const usersService = require('../services/users');
 const commentsService = require('../services/comments');
 const reactionsService = require('../services/reactions');
-const { paths, isValidSlug } = require('../utils/slug');
+const { paths, isValidSlug, slugify } = require('../utils/slug');
 const { renderMarkdown, plainExcerpt } = require('../utils/markdown');
 const { formatDate, escapeXml, absoluteUrl } = require('../utils/format');
 const { ensureVisitorKey } = require('../utils/visitor');
@@ -35,26 +35,26 @@ function parsePage(query) {
   return Number.isFinite(n) && n >= 1 ? Math.floor(n) : 1;
 }
 
-function presentPost(post) {
-  if (!post) return null;
-  const excerpt = post.excerpt || plainExcerpt(post.bodyMd);
-  return {
-    ...post,
-    excerpt,
-    bodyHtml: renderMarkdown(post.bodyMd),
-    publishedLabel: formatDate(post.publishedAt || post.createdAt),
-    viewCount: Number(post.viewCount) || 0,
-    url: paths.post(post.slug),
-  };
-}
-
 function presentPostCard(post) {
   if (!post) return null;
+  const workSlug =
+    post.workSlug || (post.workTitle ? slugify(post.workTitle) : '');
   return {
     ...post,
     excerpt: post.excerpt || plainExcerpt(post.bodyMd, 140),
     publishedLabel: formatDate(post.publishedAt || post.createdAt),
     url: paths.post(post.slug),
+    workUrl: workSlug ? paths.work(workSlug) : null,
+  };
+}
+
+function presentPost(post) {
+  if (!post) return null;
+  const card = presentPostCard(post);
+  return {
+    ...card,
+    bodyHtml: renderMarkdown(post.bodyMd),
+    viewCount: Number(post.viewCount) || 0,
   };
 }
 
@@ -297,6 +297,45 @@ function postReaction(req, res, next) {
 
   req.session.save(() => {
     res.redirect(`${paths.post(slug)}#reactions`);
+  });
+}
+
+function workArchive(req, res, next) {
+  const { slug } = req.params;
+  if (!isValidSlug(slug)) return next();
+
+  const workTitle = postsService.getWorkTitleBySlug(slug);
+  if (!workTitle) return next();
+
+  const meta = siteMeta();
+  const page = parsePage(req.query);
+  const result = postsService.listPosts({
+    status: 'published',
+    workSlug: slug,
+    page,
+    limit: meta.postsPerPage,
+  });
+
+  const pageUrl = (p) => paths.workPage(slug, p);
+
+  res.render('pages/blog', {
+    title: workTitle,
+    metaDescription: `Posts about ${workTitle}`,
+    heading: workTitle,
+    subheading: 'All posts about this anime, manga, or work.',
+    posts: result.items.map(presentPostCard),
+    pagination: {
+      page: result.page,
+      totalPages: result.totalPages,
+      total: result.total,
+      prevUrl: result.page > 1 ? pageUrl(result.page - 1) : null,
+      nextUrl:
+        result.totalPages && result.page < result.totalPages
+          ? pageUrl(result.page + 1)
+          : null,
+    },
+    filter: { type: 'work', name: workTitle, slug },
+    ...sidebarData(),
   });
 }
 
@@ -583,6 +622,7 @@ module.exports = {
   blogPost,
   postComment,
   postReaction,
+  workArchive,
   categoryArchive,
   tagArchive,
   search,
