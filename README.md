@@ -42,7 +42,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | `npm run backup` | Tar SQLite + uploads → `backups/` |
 | `npm test` | All of the above |
 
-Default seed logins: **aria** / **ken** — password from `SEED_ADMIN_PASSWORD` (default `changeme`).
+Default seed logins: **aria** (password from `SEED_ADMIN_PASSWORD`, default `changeme`) and **gokun** / **Gokun** (display name: Gokun Earthling).
 
 ## Docker Compose
 

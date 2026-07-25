@@ -14,7 +14,7 @@ const config = {
   env: process.env.NODE_ENV || 'development',
   port: Number(process.env.PORT) || 3000,
   appUrl: process.env.APP_URL || 'http://localhost:3000',
-  siteName: process.env.SITE_NAME || 'Ainme Blog',
+  siteName: process.env.SITE_NAME || 'Ainme',
   sessionSecret: process.env.SESSION_SECRET || 'dev-only-change-me',
   rootDir,
   dataDir,

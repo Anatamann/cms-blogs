@@ -4,17 +4,18 @@
   <div class="layout-main">
     <header class="page-header">
       <h1>Search</h1>
+      <p class="lead">Find reviews, recaps, and deep cuts by title, series, or keyword.</p>
       <form class="search-form" action="<%= paths.search() %>" method="get" role="search">
         <label class="sr-only" for="q">Search posts</label>
-        <input id="q" type="search" name="q" value="<%= q %>" placeholder="Titles, excerpts, body…" autofocus />
+        <input id="q" type="search" name="q" value="<%= q %>" placeholder="e.g. Evangelion, isekai, season finale…" autofocus />
         <button type="submit" class="btn btn-primary">Search</button>
       </form>
     </header>
 
     <% if (!q) { %>
-    <p class="lead">Type a query to search published posts.</p>
+    <p class="lead">Type something you remember — a show, a vibe, a half-forgotten OST lyric.</p>
     <% } else if (!posts.length) { %>
-    <p class="lead">No results for <strong><%= q %></strong>.</p>
+    <p class="lead">No hits for <strong><%= q %></strong>. Try another spelling or browse the <a href="<%= paths.blog() %>">full catalog</a>.</p>
     <% } else { %>
     <p class="result-count"><%= pagination.total %> result<%= pagination.total === 1 ? '' : 's' %> for “<%= q %>”</p>
     <div class="post-grid">

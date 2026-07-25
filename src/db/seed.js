@@ -92,16 +92,16 @@ async function seed() {
         username: 'aria',
         passwordHash,
         displayName: 'Aria Neon',
-        bio: 'Reviews, deep cuts, and CRT-glow hot takes.',
+        bio: 'Anime in Me since the CRT days. Classics, gut-punch drama, mecha, and the shows you can still talk about at 2 a.m.',
         createdAt: ts,
         updatedAt: ts,
       },
       {
         id: IDS.userKen,
-        username: 'ken',
-        passwordHash,
-        displayName: 'Ken Pixel',
-        bio: 'News desk and seasonal watch-alongs.',
+        username: 'gokun',
+        passwordHash: await bcrypt.hash('Gokun', 10),
+        displayName: 'Gokun Earthling',
+        bio: 'Seasonal hype, action arcs, and the group-chat arguments that never really end.',
         createdAt: ts,
         updatedAt: ts,
       },
@@ -114,21 +114,21 @@ async function seed() {
         id: IDS.catReviews,
         name: 'Reviews',
         slug: 'reviews',
-        description: 'Spoiler-aware reviews and scorecards.',
+        description: 'Spoiler-aware takes on full series, seasons, and specials.',
         createdAt: ts,
       },
       {
         id: IDS.catNews,
         name: 'News',
         slug: 'news',
-        description: 'Industry and fandom news.',
+        description: 'Chart moments, drops, and fandom noise worth your weeknights.',
         createdAt: ts,
       },
       {
         id: IDS.catTheories,
         name: 'Fan Theories',
         slug: 'fan-theories',
-        description: 'Speculation with receipts.',
+        description: 'Late-night speculation with receipts — mild spoilers when needed.',
         createdAt: ts,
       },
     ])
@@ -147,7 +147,8 @@ async function seed() {
       { key: 'site_title', value: config.siteName, updatedAt: ts },
       {
         key: 'site_description',
-        value: 'Lightweight anime blogging — retro vibes, modern stack.',
+        value:
+          'Ainme — Anime in Me. Reviews, recaps, and deep cuts for millennial fans: Berserk to DBZ, Eva to AoT, drama nights to cultured late-night rewatches.',
         updatedAt: ts,
       },
       { key: 'posts_per_page', value: '10', updatedAt: ts },
@@ -159,16 +160,18 @@ async function seed() {
       {
         id: IDS.postWelcome,
         slug: 'welcome-to-ainme',
-        title: 'Welcome to Ainme',
-        excerpt: 'Why this tiny CMS exists and how we write about anime.',
+        title: 'Welcome to the feed',
+        excerpt: 'Ainme means Anime in Me — who we are, what we watch, and why this couch never gets cold.',
         bodyMd: [
-          '# Welcome to Ainme',
+          '# Welcome to the feed',
           '',
-          'This site is a **lightweight** anime blog: reviews, news, and theories without a heavy CMS.',
+          '**Ainme** = **Anime in Me**. The name is the thesis.',
           '',
-          'Public URLs stay clean (`/blog/welcome-to-ainme`). Database rows use UUID primary keys behind the scenes.',
+          'If you can talk all day about *Berserk*, *Monster*, *Dragon Ball*, and *Neon Genesis Evangelion* — then pivot to early-2000s and 2010s heat like *Akame ga Kill!*, *Attack on Titan*, *Your Lie in April*, and the unapologetically “cultured” late-night shelf (*High School DxD*, we’re looking at you) — you’re home.',
           '',
-          'Stay tuned for more neon scanlines.',
+          'We write reviews, recaps, news, and theory spirals with the volume up. No gatekeeping on era or genre. If it’s in you, it belongs here.',
+          '',
+          'Grab a seat on the virtual couch.',
         ].join('\n'),
         status: 'published',
         authorId: IDS.userAria,
@@ -204,9 +207,9 @@ async function seed() {
         bodyMd: [
           '# Spring Season Spotlight',
           '',
-          '1. The unexpected rom-com',
-          '2. The slow-burn mecha',
-          '3. The short-form experiment',
+          '1. The unexpected rom-com that still hits like a 90s OVA',
+          '2. The slow-burn mecha for late-night rewatches',
+          '3. The short-form series you can finish before bed',
         ].join('\n'),
         status: 'published',
         authorId: IDS.userKen,
@@ -266,7 +269,9 @@ async function seed() {
     .run();
 
   console.log('[seed] Done.');
-  console.log(`[seed] Admin logins (Phase 3): aria / ken  password: ${DEFAULT_PASSWORD}`);
+  console.log(
+    `[seed] Admin logins: aria / ${DEFAULT_PASSWORD} · gokun / Gokun`
+  );
   console.log('[seed] Sample public slugs: welcome-to-ainme, neon-genesis-evangelion-review, …');
 
   return { skipped: false, ids: IDS };

@@ -4,11 +4,13 @@
   <div class="layout-main">
     <header class="page-header">
       <h1>Archive</h1>
-      <p class="lead"><%= total %> published post<%= total === 1 ? '' : 's' %>.</p>
+      <p class="lead">
+        Every published piece, year by year — <%= total %> post<%= total === 1 ? '' : 's' %> on the shelf.
+      </p>
     </header>
 
     <% if (!years.length) { %>
-    <p class="lead">Nothing published yet.</p>
+    <p class="lead">The archive is empty for now. Come back after the next drop.</p>
     <% } else { %>
       <% years.forEach(function (year) { %>
       <section class="archive-year" aria-labelledby="year-<%= year %>">

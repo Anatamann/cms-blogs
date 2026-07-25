@@ -1,6 +1,5 @@
 <%- include('../partials/header') %>
 
-<% /* Full-page scroll scrub via WebP frame sequence (smooth) */ %>
 <div
   class="home-scroll"
   data-scroll-hero
@@ -26,29 +25,29 @@
 
   <div class="home-scroll__content" data-scroll-content>
     <section class="home-scroll__intro wrap" aria-labelledby="hero-heading">
-      <p class="badge">Scroll experiment · frame sequence</p>
+      <p class="badge">Anime in Me · Millennial shelf · Stay neon</p>
       <h1 id="hero-heading" class="hero-title home-scroll__title">
         Welcome to <span class="neon glitch-hover"><%= siteName %></span>
       </h1>
       <p class="hero-lead home-scroll__lead">
-        <%= typeof siteDescription !== 'undefined' ? siteDescription : 'Reviews, news, and fan theories with CRT glow.' %>
+        <%= typeof siteDescription !== 'undefined' ? siteDescription : 'Ainme — Anime in Me. Reviews and deep cuts from Berserk to DBZ, Eva to AoT, drama nights to cultured late-night rewatches.' %>
       </p>
       <p class="home-scroll__hint" data-scroll-hint>
         <span class="home-scroll__hint-icon" aria-hidden="true">↓</span>
-        Scroll — frames scrub with the page
+        Scroll to enter the grid
       </p>
       <div class="hero-actions">
-        <a class="btn btn-primary" href="<%= paths.blog() %>">Browse Blog</a>
-        <a class="btn btn-ghost" href="#latest-posts">Latest posts</a>
+        <a class="btn btn-primary" href="<%= paths.blog() %>">Dive into the blog</a>
+        <a class="btn btn-ghost" href="#latest-posts">Fresh drops</a>
       </div>
     </section>
 
     <div class="wrap layout-with-sidebar home-scroll__main" id="latest-posts">
       <div class="layout-main">
         <div class="home-scroll__panel">
-          <h2 class="section-title">Latest posts</h2>
+          <h2 class="section-title">Latest on the feed</h2>
           <% if (!posts || !posts.length) { %>
-          <p class="lead">No published posts yet. Seed the database or create content in admin.</p>
+          <p class="lead">Nothing on the tape yet — check back soon for new reviews and deep cuts.</p>
           <% } else { %>
           <div class="post-grid">
             <% posts.forEach(function (post) { %>
@@ -56,7 +55,7 @@
             <% }) %>
           </div>
           <p class="section-more">
-            <a class="btn btn-ghost" href="<%= paths.blog() %>">All posts →</a>
+            <a class="btn btn-ghost" href="<%= paths.blog() %>">Full catalog →</a>
           </p>
           <% } %>
         </div>
@@ -66,15 +65,15 @@
       </aside>
     </div>
 
-    <section class="wrap home-scroll__outro home-scroll__panel" aria-label="Continue">
-      <h2 class="section-title">Keep exploring</h2>
+    <section class="wrap home-scroll__outro home-scroll__panel" aria-label="More from the site">
+      <h2 class="section-title">Still got time on the VHS?</h2>
       <p class="lead">
-        This intro is a WebP frame sequence scrubbed by scroll — same idea as parallax, with exact frames instead of video seeks.
+        Dig the archive, hunt by series, or drop us a line. Same couch, same neon — different decade.
       </p>
       <div class="hero-actions">
         <a class="btn btn-primary" href="<%= paths.archive() %>">Archive</a>
         <a class="btn btn-ghost" href="<%= paths.search() %>">Search</a>
-        <a class="btn btn-ghost" href="<%= paths.about() %>">About</a>
+        <a class="btn btn-ghost" href="<%= paths.about() %>">About us</a>
       </div>
     </section>
   </div>

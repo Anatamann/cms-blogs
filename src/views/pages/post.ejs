@@ -40,7 +40,7 @@
 
       <!-- Reactions -->
       <section id="reactions" class="reactions" aria-labelledby="reactions-heading">
-        <h2 id="reactions-heading" class="section-title">Reactions</h2>
+        <h2 id="reactions-heading" class="section-title">How’d it hit?</h2>
         <div class="reactions-row" role="group" aria-label="Post reactions">
           <% reactions.types.forEach(function (r) { %>
           <form method="post" action="<%= paths.postReaction(post.slug) %>" class="reaction-form">
@@ -62,7 +62,7 @@
 
       <!-- Comments -->
       <section id="comments" class="comments" aria-labelledby="comments-heading">
-        <h2 id="comments-heading" class="section-title">Comments</h2>
+        <h2 id="comments-heading" class="section-title">Couch talk</h2>
 
         <% if (commentFlash) { %>
         <p class="flash flash-<%= commentFlash.type === 'ok' ? 'ok' : 'error' %>" role="status">
@@ -71,7 +71,7 @@
         <% } %>
 
         <% if (!comments.length) { %>
-        <p class="muted">No comments yet. Be the first (after moderation).</p>
+        <p class="muted">Quiet on this thread so far — say something (we mod before it goes live).</p>
         <% } else { %>
         <ul class="comment-list">
           <% comments.forEach(function (c) { %>
@@ -87,8 +87,8 @@
         <% } %>
 
         <form method="post" action="<%= paths.postComment(post.slug) %>" class="comment-form contact-form">
-          <h3 class="comment-form__title">Leave a comment</h3>
-          <p class="field-hint">Comments are moderated and appear after approval.</p>
+          <h3 class="comment-form__title">Join the thread</h3>
+          <p class="field-hint">We moderate first so the feed stays chill — your take shows up after approval.</p>
 
           <!-- Honeypot -->
           <div class="hp-field" aria-hidden="true">
@@ -108,13 +108,13 @@
             <label for="comment-body">Comment</label>
             <textarea id="comment-body" name="body" rows="5" required maxlength="2000"><%= commentForm.body %></textarea>
           </div>
-          <button type="submit" class="btn btn-primary">Submit for review</button>
+          <button type="submit" class="btn btn-primary">Send for review</button>
         </form>
       </section>
 
       <% if (related && related.length) { %>
       <section class="related" aria-labelledby="related-heading">
-        <h2 id="related-heading" class="section-title">Related</h2>
+        <h2 id="related-heading" class="section-title">More from the shelf</h2>
         <div class="post-grid post-grid--compact">
           <% related.forEach(function (post) { %>
             <%- include('../partials/post-card', { post: post }) %>
@@ -124,7 +124,7 @@
       <% } %>
 
       <p class="section-more">
-        <a class="btn btn-ghost" href="<%= paths.blog() %>">← Back to blog</a>
+        <a class="btn btn-ghost" href="<%= paths.blog() %>">← Back to the catalog</a>
       </p>
     </div>
     <%- include('../partials/sidebar') %>

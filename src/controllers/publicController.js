@@ -18,7 +18,8 @@ function siteMeta() {
   return {
     siteTitle: all.site_title || config.siteName,
     siteDescription:
-      all.site_description || 'Lightweight anime blogging — retro vibes, modern stack.',
+      all.site_description ||
+      'Ainme — Anime in Me. Reviews, recaps, and deep cuts for millennial fans: Berserk to DBZ, Eva to AoT, drama nights to cultured late-night rewatches.',
     postsPerPage: Math.min(50, Math.max(1, Number(all.posts_per_page) || 10)),
   };
 }
@@ -114,7 +115,7 @@ function home(req, res) {
   });
 
   res.render('pages/home', {
-    title: meta.siteTitle,
+    title: '', // brand only in <title> (avoid "Ainme · Ainme")
     metaDescription: meta.siteDescription,
     siteDescription: meta.siteDescription,
     canonicalUrl: absoluteUrl(config.appUrl, paths.home()),
@@ -137,7 +138,7 @@ function blogIndex(req, res) {
     title: 'Blog',
     metaDescription: `All posts — ${meta.siteDescription}`,
     heading: 'Blog',
-    subheading: 'Reviews, news, and theories.',
+    subheading: 'Reviews, recaps, news, and deep cuts — sorted for rewatch culture.',
     posts: result.items.map(presentPostCard),
     pagination: {
       page: result.page,
@@ -250,7 +251,7 @@ function postComment(req, res, next) {
     });
     req.session.commentFlash = {
       type: 'ok',
-      message: 'Thanks! Your comment was submitted and awaits moderation.',
+      message: 'Locked in — thanks. Your comment is in the moderation queue and will show once approved.',
     };
     req.session.commentForm = { name: '', email: '', body: '' };
   } catch (err) {
@@ -322,7 +323,7 @@ function workArchive(req, res, next) {
     title: workTitle,
     metaDescription: `Posts about ${workTitle}`,
     heading: workTitle,
-    subheading: 'All posts about this anime, manga, or work.',
+    subheading: 'Everything we’ve written about this title — lined up for your binge.',
     posts: result.items.map(presentPostCard),
     pagination: {
       page: result.page,
@@ -362,7 +363,7 @@ function categoryArchive(req, res, next) {
     title: category.name,
     metaDescription: category.description || `Posts in ${category.name}`,
     heading: category.name,
-    subheading: category.description || 'Category archive',
+    subheading: category.description || 'Posts in this section of the catalog.',
     posts: result.items.map(presentPostCard),
     pagination: {
       page: result.page,
@@ -401,7 +402,7 @@ function tagArchive(req, res, next) {
     title: `#${tag.name}`,
     metaDescription: `Posts tagged ${tag.name}`,
     heading: `#${tag.name}`,
-    subheading: 'Tag archive',
+    subheading: 'Genre and topic picks from the catalog.',
     posts: result.items.map(presentPostCard),
     pagination: {
       page: result.page,
@@ -443,7 +444,7 @@ function search(req, res) {
 
   res.render('pages/search', {
     title: q ? `Search: ${q}` : 'Search',
-    metaDescription: 'Search published posts',
+    metaDescription: 'Search reviews, recaps, and anime deep cuts.',
     q,
     posts: result.items.map(presentPostCard),
     pagination: {
@@ -479,7 +480,7 @@ function archive(_req, res) {
 
   res.render('pages/archive', {
     title: 'Archive',
-    metaDescription: 'Full post archive',
+    metaDescription: 'Full archive of anime reviews, recaps, and culture posts — year by year.',
     years,
     byYear,
     total: result.total,
@@ -503,7 +504,7 @@ function about(_req, res) {
 function contactGet(_req, res) {
   res.render('pages/contact', {
     title: 'Contact',
-    metaDescription: 'Get in touch',
+    metaDescription: 'Tips, corrections, collabs, and watch recommendations for Ainme.',
     sent: false,
     error: null,
     form: { name: '', email: '', message: '' },
@@ -519,18 +520,18 @@ function contactPost(req, res) {
   if (!name || !email || !message) {
     return res.status(400).render('pages/contact', {
       title: 'Contact',
-      metaDescription: 'Get in touch',
+      metaDescription: 'Tips, corrections, collabs, and watch recommendations for Ainme.',
       sent: false,
-      error: 'Please fill in name, email, and message.',
+      error: 'Name, email, and message are all required — fill the form and try again.',
       form: { name, email, message },
       ...sidebarData(),
     });
   }
 
-  // Phase 2: acknowledge only (no mail transport). Phase 6 can store or email.
+  // Acknowledge only (no mail transport yet).
   res.render('pages/contact', {
     title: 'Contact',
-    metaDescription: 'Get in touch',
+    metaDescription: 'Tips, corrections, collabs, and watch recommendations for Ainme.',
     sent: true,
     error: null,
     form: { name: '', email: '', message: '' },

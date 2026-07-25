@@ -21,7 +21,7 @@
   --font-display: "Courier New", ui-monospace, "Cascadia Code", monospace;
   --radius: 6px;
   --wrap: 1080px;
-  --header-h: 3.5rem;
+  --header-h: 4.25rem;
   --shadow-neon: 0 0 18px rgba(255, 0, 255, 0.28);
   --shadow-cyan: 0 0 14px rgba(0, 255, 255, 0.25);
   --ease: 160ms ease;
@@ -184,19 +184,20 @@ a:hover {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.85rem 0;
+  padding: 0.95rem 0;
   min-height: var(--header-h);
 }
 
 .logo {
   font-family: var(--font-display);
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-weight: 800;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  font-size: 1.05rem;
+  font-size: clamp(1.65rem, 2.5vw, 2.15rem);
+  line-height: 1.1;
   color: var(--magenta);
   text-decoration: none;
-  text-shadow: 0 0 12px rgba(255, 0, 255, 0.5);
+  text-shadow: 0 0 14px rgba(255, 0, 255, 0.55);
   position: relative;
   transition: text-shadow var(--ease), transform var(--ease);
 }

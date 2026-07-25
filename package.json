@@ -1,7 +1,7 @@
 {
   "name": "ainmeblog",
   "version": "0.1.0",
-  "description": "Lightweight anime blogging CMS — retro-modern, Dockerized, 1–2 authors",
+  "description": "Ainme — anime blog & CMS for 90s millennial fans. Retro-modern UI, Dockerized, 1–2 authors",
   "private": true,
   "main": "src/server.js",
   "scripts": {

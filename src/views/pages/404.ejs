@@ -1,9 +1,14 @@
 <%- include('../partials/header') %>
 
 <section class="wrap page-block">
-  <h1>404 — Signal lost</h1>
-  <p class="lead">No page at <code><%= path %></code>.</p>
-  <p><a class="btn btn-primary" href="<%= paths.home() %>">Return home</a></p>
+  <h1>404 — Wrong dimension</h1>
+  <p class="lead">
+    Nothing at <code><%= path %></code>. Either the link’s broken or this page got isekai’d.
+  </p>
+  <p>
+    <a class="btn btn-primary" href="<%= paths.home() %>">Back to home</a>
+    <a class="btn btn-ghost" href="<%= paths.blog() %>">Browse the blog</a>
+  </p>
 </section>
 
 <%- include('../partials/footer') %>

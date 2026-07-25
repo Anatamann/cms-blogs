@@ -4,11 +4,15 @@
   <div class="layout-main">
     <header class="page-header">
       <h1>Contact</h1>
-      <p class="lead">Send a signal. (Messages are acknowledged locally until mail is wired.)</p>
+      <p class="lead">
+        Tips, corrections, collabs, or “you have to watch this” recommendations — we read everything.
+      </p>
     </header>
 
     <% if (sent) { %>
-    <p class="flash flash-ok" role="status">Thanks — your message was received.</p>
+    <p class="flash flash-ok" role="status">
+      Message locked in. Thanks for writing — if a reply’s needed, we’ll be in touch.
+    </p>
     <% } %>
     <% if (error) { %>
     <p class="flash flash-error" role="alert"><%= error %></p>
@@ -17,17 +21,17 @@
     <form class="contact-form" action="<%= paths.contact() %>" method="post" novalidate>
       <div class="field">
         <label for="name">Name</label>
-        <input id="name" name="name" type="text" required maxlength="120" value="<%= form.name %>" />
+        <input id="name" name="name" type="text" required maxlength="120" value="<%= form.name %>" autocomplete="name" />
       </div>
       <div class="field">
         <label for="email">Email</label>
-        <input id="email" name="email" type="email" required maxlength="200" value="<%= form.email %>" />
+        <input id="email" name="email" type="email" required maxlength="200" value="<%= form.email %>" autocomplete="email" />
       </div>
       <div class="field">
         <label for="message">Message</label>
-        <textarea id="message" name="message" rows="6" required maxlength="5000"><%= form.message %></textarea>
+        <textarea id="message" name="message" rows="6" required maxlength="5000" placeholder="What’s on your mind?"><%= form.message %></textarea>
       </div>
-      <button type="submit" class="btn btn-primary">Send</button>
+      <button type="submit" class="btn btn-primary">Send message</button>
     </form>
   </div>
   <%- include('../partials/sidebar') %>

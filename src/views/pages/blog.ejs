@@ -15,7 +15,10 @@
     </header>
 
     <% if (!posts || !posts.length) { %>
-    <p class="lead">No posts found.</p>
+    <p class="lead">
+      Nothing in this shelf yet.
+      <% if (filter) { %>Try the <a href="<%= paths.blog() %>">full catalog</a> or another filter.<% } else { %>Check back after the next drop.<% } %>
+    </p>
     <% } else { %>
     <p class="result-count"><%= pagination.total %> post<%= pagination.total === 1 ? '' : 's' %></p>
     <div class="post-grid">

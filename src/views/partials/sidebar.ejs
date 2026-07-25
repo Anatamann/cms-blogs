@@ -1,16 +1,16 @@
 <aside class="sidebar" aria-label="Sidebar">
   <section class="sidebar-block">
-    <h2 class="sidebar-title">Search</h2>
+    <h2 class="sidebar-title">Hunt a title</h2>
     <form class="search-form search-form--compact" action="<%= paths.search() %>" method="get" role="search">
       <label class="sr-only" for="sidebar-q">Search posts</label>
-      <input id="sidebar-q" type="search" name="q" placeholder="Search…" value="<%= typeof q !== 'undefined' ? q : '' %>" />
+      <input id="sidebar-q" type="search" name="q" placeholder="Show, vibe, keyword…" value="<%= typeof q !== 'undefined' ? q : '' %>" />
       <button type="submit" class="btn btn-ghost btn-sm">Go</button>
     </form>
   </section>
 
   <% if (typeof categories !== 'undefined' && categories && categories.length) { %>
   <section class="sidebar-block">
-    <h2 class="sidebar-title">Categories</h2>
+    <h2 class="sidebar-title">Sections</h2>
     <ul class="chip-list">
       <% categories.forEach(function (cat) { %>
       <li>
@@ -23,7 +23,7 @@
 
   <% if (typeof tags !== 'undefined' && tags && tags.length) { %>
   <section class="sidebar-block">
-    <h2 class="sidebar-title">Tags</h2>
+    <h2 class="sidebar-title">Genres &amp; vibes</h2>
     <ul class="chip-list">
       <% tags.forEach(function (tag) { %>
       <li>

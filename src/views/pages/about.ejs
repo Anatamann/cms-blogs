@@ -9,20 +9,37 @@
 
     <div class="prose">
       <p>
-        <strong><%= siteName %></strong> is a lightweight anime blogging CMS:
-        Markdown posts, clean slug URLs, and a retro-modern UI — without a heavy
-        WordPress-style stack.
+        <strong><%= siteName %></strong> means <em>Anime in Me</em> — the shows that got under the
+        skin and never left. Not a corporate anime hub. A feed for people who can talk all day
+        about the medium because it’s part of who they are.
       </p>
       <p>
-        Content lives in SQLite. Public pages never expose database UUIDs; you
-        browse by human-readable paths like
-        <code>/blog/neon-genesis-evangelion-review</code>.
+        The shelf is wide on purpose. Dark classics like <em>Berserk</em> and <em>Monster</em>.
+        Childhood powerhouses like <em>Dragon Ball</em>. Brain-melters like
+        <em>Neon Genesis Evangelion</em>. Early-2000s and 2010s heat — <em>Akame ga Kill!</em>,
+        <em>Attack on Titan</em>, tear-jerkers like <em>Your Lie in April</em>, and the “cultured”
+        late-night picks (yes, <em>High School DxD</em> counts as homework).
+      </p>
+      <p>
+        If you grew up on Toonami, burned fansub DVDs, forum flame wars, and still rewatch with the
+        volume up — pull up. Neon, nostalgia, honest takes. No press-release energy.
+      </p>
+      <h2>What you’ll find here</h2>
+      <ul>
+        <li><strong>Reviews &amp; recaps</strong> — full series, seasons, and specials, spoiler-aware when it counts</li>
+        <li><strong>Drama, action, mecha, and mayhem</strong> — from gut-punch stories to pure hype</li>
+        <li><strong>News &amp; culture</strong> — drops, chart moments, and fandom noise worth your time</li>
+        <li><strong>Genres &amp; series</strong> — browse by vibe or by title when you want the whole shelf on one work</li>
+      </ul>
+      <p>
+        Team DBZ or Team Eva, Saturday morning or 2&nbsp;a.m. “just one more episode” —
+        the grid’s still on. <strong>Anime in Me.</strong>
       </p>
     </div>
 
     <% if (authors && authors.length) { %>
     <section class="authors" aria-labelledby="authors-heading">
-      <h2 id="authors-heading" class="section-title">Authors</h2>
+      <h2 id="authors-heading" class="section-title">Who’s on the mic</h2>
       <div class="author-grid">
         <% authors.forEach(function (author) { %>
         <article class="card scanlines">
