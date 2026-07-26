@@ -117,7 +117,7 @@ async function http() {
   {
     const res = await fetch(new URL('/mantri/login', base));
     cookie = mergeCookies(cookie, res);
-    const body = new URLSearchParams({ username: 'aria', password });
+    const body = new URLSearchParams({ username: 'octopus', password });
     const login = await fetch(new URL('/mantri/login', base), {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded', Cookie: cookie },

@@ -31,17 +31,23 @@ const CATALOG_PATH = path.join(SEED_DATA_DIR, 'catalog.json');
 
 /** Fixed UUIDs for base seed users / categories (tests + reproducible first install). */
 const IDS = {
-  userAria: 'a1b2c3d4-e5f6-4a70-8b9c-0d1e2f3a4b5c',
+  /** Primary author — login `octopus`, display “Octopus Sensei” (was aria) */
+  userOctopus: 'a1b2c3d4-e5f6-4a70-8b9c-0d1e2f3a4b5c',
   userGokun: 'b2c3d4e5-f6a7-4b81-9c0d-1e2f3a4b5c6d',
   catReviews: 'c3d4e5f6-a7b8-4c92-8d1e-2f3a4b5c6d7e',
   catNews: 'd4e5f6a7-b8c9-4d03-9e2f-3a4b5c6d7e8f',
   catTheories: 'e5f6a7b8-c9d0-4e14-af3a-4b5c6d7e8f90',
-  // legacy alias
+  // legacy aliases (same UUIDs)
+  userAria: 'a1b2c3d4-e5f6-4a70-8b9c-0d1e2f3a4b5c',
   userKen: 'b2c3d4e5-f6a7-4b81-9c0d-1e2f3a4b5c6d',
 };
 
+// Never hardcode production passwords. Private .env provides SEED_* values.
+// Fallback is a weak local-dev placeholder only (change immediately).
 const DEFAULT_PASSWORD = process.env.SEED_ADMIN_PASSWORD || 'changeme';
-const GOKUN_PASSWORD = process.env.SEED_GOKUN_PASSWORD || 'Gokun';
+const GOKUN_PASSWORD = process.env.SEED_GOKUN_PASSWORD || 'changeme';
+const OCTOPUS_USERNAME = 'octopus';
+const OCTOPUS_DISPLAY = 'Octopus Sensei';
 
 const SITE_DESCRIPTION =
   'Ainme — Anime in Me. Reviews, recaps, and deep cuts for millennial fans: Berserk to DBZ, Eva to AoT, drama nights to cultured late-night rewatches.';
@@ -135,23 +141,61 @@ function ensureSetting(db, key, value) {
 function ensureUsers(db) {
   const ts = nowIso();
   const created = [];
+  const octopusBio =
+    'Anime in Me since the CRT days. Classics, gut-punch drama, mecha, and the shows you can still talk about at 2 a.m.';
 
-  const aria = db.select().from(users).where(eq(users.username, 'aria')).get();
-  if (!aria) {
-    const passwordHash = bcrypt.hashSync(DEFAULT_PASSWORD, 10);
-    db.insert(users)
-      .values({
-        id: IDS.userAria,
-        username: 'aria',
-        passwordHash,
-        displayName: 'Aria Neon',
-        bio: 'Anime in Me since the CRT days. Classics, gut-punch drama, mecha, and the shows you can still talk about at 2 a.m.',
-        createdAt: ts,
-        updatedAt: ts,
-      })
-      .run();
-    created.push('aria');
-    console.log('[seed] + user aria');
+  let octopus = db.select().from(users).where(eq(users.username, OCTOPUS_USERNAME)).get();
+  if (!octopus) {
+    // Rename legacy "aria" if present (keeps same UUID → posts stay linked)
+    const aria = db.select().from(users).where(eq(users.username, 'aria')).get();
+    if (aria) {
+      db.update(users)
+        .set({
+          username: OCTOPUS_USERNAME,
+          displayName: OCTOPUS_DISPLAY,
+          bio: aria.bio || octopusBio,
+          updatedAt: ts,
+        })
+        .where(eq(users.id, aria.id))
+        .run();
+      created.push('octopus(from aria)');
+      console.log('[seed] renamed aria → octopus (Octopus Sensei)');
+      octopus = db.select().from(users).where(eq(users.id, aria.id)).get();
+    } else {
+      const passwordHash = bcrypt.hashSync(DEFAULT_PASSWORD, 10);
+      db.insert(users)
+        .values({
+          id: IDS.userOctopus,
+          username: OCTOPUS_USERNAME,
+          passwordHash,
+          displayName: OCTOPUS_DISPLAY,
+          bio: octopusBio,
+          createdAt: ts,
+          updatedAt: ts,
+        })
+        .run();
+      created.push(OCTOPUS_USERNAME);
+      console.log('[seed] + user', OCTOPUS_USERNAME, `(${OCTOPUS_DISPLAY})`);
+    }
+  } else {
+    /** @type {Record<string, unknown>} */
+    const patch = {};
+    if (octopus.displayName !== OCTOPUS_DISPLAY) {
+      patch.displayName = OCTOPUS_DISPLAY;
+    }
+    // Optional: reset password when SEED_RESET_OCTOPUS_PASSWORD=true (or always set from SEED_ADMIN_PASSWORD in non-prod)
+    if (
+      process.env.SEED_RESET_OCTOPUS_PASSWORD === 'true' ||
+      process.env.SEED_RESET_OCTOPUS_PASSWORD === '1'
+    ) {
+      patch.passwordHash = bcrypt.hashSync(DEFAULT_PASSWORD, 10);
+      console.log('[seed] ~ octopus password reset from SEED_ADMIN_PASSWORD');
+    }
+    if (Object.keys(patch).length) {
+      patch.updatedAt = ts;
+      db.update(users).set(patch).where(eq(users.id, octopus.id)).run();
+      if (patch.displayName) console.log('[seed] ~ display name →', OCTOPUS_DISPLAY);
+    }
   }
 
   const gokun = db.select().from(users).where(eq(users.username, 'gokun')).get();
@@ -271,6 +315,7 @@ function ensureCatalogPosts(db) {
   }
 
   const author =
+    db.select().from(users).where(eq(users.username, OCTOPUS_USERNAME)).get() ||
     db.select().from(users).where(eq(users.username, 'aria')).get() ||
     db.select().from(users).all()[0];
   if (!author) {
@@ -405,7 +450,10 @@ async function seed() {
   console.log(
     `[seed] Done. published=${pubCount} tags=${tagCount} catalog +${catalogResult.inserted} ~${catalogResult.updated}`
   );
-  console.log(`[seed] Admin: aria / ${DEFAULT_PASSWORD} · gokun / ${GOKUN_PASSWORD}`);
+  // Never print passwords to logs (Docker/CI may capture stdout).
+  console.log(
+    `[seed] Authors: ${OCTOPUS_USERNAME} (${OCTOPUS_DISPLAY}), gokun — passwords from env only (not logged)`
+  );
   console.log('[seed] Feature slugs include: dr-stone, mushoku-tensei, oshi-no-ko, evangelion…');
 
   return {

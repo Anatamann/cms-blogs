@@ -9,14 +9,15 @@
   <div class="stat-card"><span class="stat-n"><%= stats.total %></span><span class="stat-l">Posts</span></div>
   <div class="stat-card"><span class="stat-n"><%= stats.published %></span><span class="stat-l">Published</span></div>
   <div class="stat-card"><span class="stat-n"><%= stats.drafts %></span><span class="stat-l">Drafts</span></div>
-  <div class="stat-card"><span class="stat-n"><%= stats.categories %></span><span class="stat-l">Categories</span></div>
-  <div class="stat-card"><span class="stat-n"><%= stats.tags %></span><span class="stat-l">Tags</span></div>
+  <div class="stat-card"><span class="stat-n"><%= stats.totalViews != null ? stats.totalViews : 0 %></span><span class="stat-l">Total views</span></div>
+  <div class="stat-card"><span class="stat-n"><%= stats.totalReactions != null ? stats.totalReactions : 0 %></span><span class="stat-l">Reactions</span></div>
   <div class="stat-card"><span class="stat-n"><%= stats.pendingComments %></span><span class="stat-l">Pending comments</span></div>
 </div>
 
 <p class="admin-actions">
   <a class="btn btn-primary" href="<%= paths.admin.postNew() %>">New post</a>
   <a class="btn btn-ghost" href="<%= paths.admin.posts() %>">All posts</a>
+  <a class="btn btn-ghost" href="<%= paths.admin.analytics() %>">Analytics</a>
   <a class="btn btn-ghost" href="<%= paths.admin.tags() %>">Tags (<%= stats.tags %>)</a>
   <a class="btn btn-ghost" href="<%= paths.admin.comments() %>">Moderate comments<% if (stats.pendingComments) { %> (<%= stats.pendingComments %>)<% } %></a>
 </p>

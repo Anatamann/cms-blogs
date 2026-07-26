@@ -4,7 +4,7 @@
  * Phase 3 admin CMS checks.
  *   BASE_URL=http://127.0.0.1:3000 npm run test:phase3
  *
- * Uses seed users aria / SEED_ADMIN_PASSWORD (default changeme).
+ * Uses seed user octopus / SEED_ADMIN_PASSWORD (default changeme).
  */
 
 const { paths } = require('../src/utils/slug');
@@ -94,7 +94,7 @@ async function http() {
 
   // Bad login
   {
-    const body = new URLSearchParams({ username: 'aria', password: 'wrong-password' });
+    const body = new URLSearchParams({ username: 'octopus', password: 'wrong-password' });
     const res = await fetch(new URL('/mantri/login', base), {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded', Cookie: cookie },
@@ -109,7 +109,7 @@ async function http() {
 
   // Good login
   {
-    const body = new URLSearchParams({ username: 'aria', password });
+    const body = new URLSearchParams({ username: 'octopus', password });
     const res = await fetch(new URL('/mantri/login', base), {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded', Cookie: cookie },

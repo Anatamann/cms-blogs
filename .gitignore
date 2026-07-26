@@ -1,23 +1,32 @@
 # Dependencies
 node_modules/
 
-# Environment
+# Private environment — NEVER commit real secrets
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
+!.env.docker.example
 
-# Runtime / data
-data/*.sqlite
-data/*.sqlite-*
-data/*.db
-data/test-*/
+# Runtime / data (local SQLite, WAL, test DBs)
+data/*
 !data/.gitkeep
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.db
 
-# Uploads (keep folder structure)
+# Uploads (keep folder structure only)
 public/uploads/images/*
 public/uploads/gifs/*
 public/uploads/videos/*
 !public/uploads/**/.gitkeep
+
+# Large local media (hero frames can be regenerated; omit from public clone noise)
+public/videos/
+
+# Backups (may contain DB + private content)
+backups/
+*.tar.gz
 
 # Logs & OS
 logs/
@@ -36,10 +45,4 @@ Thumbs.db
 coverage/
 dist/
 tmp/
-backups/
-
-#Docs
-CREATE-POST.md
-
-#public
-public/videos/
+.cache/

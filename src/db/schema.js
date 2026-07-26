@@ -205,6 +205,32 @@ const reactions = sqliteTable(
   })
 );
 
+/**
+ * Lightweight analytics pageviews (device + region).
+ * Totals for posts also use posts.view_count; reactions use reactions table.
+ */
+const analyticsEvents = sqliteTable(
+  'analytics_events',
+  {
+    id: text('id').primaryKey().notNull(),
+    kind: text('kind').notNull().default('pageview'),
+    path: text('path').notNull().default(''),
+    postId: text('post_id').references(() => posts.id, { onDelete: 'set null' }),
+    device: text('device').notNull().default('unknown'), // desktop | mobile | tablet | bot
+    region: text('region').notNull().default('XX'), // ISO-ish country or XX
+    visitorKey: text('visitor_key').notNull().default(''),
+    createdAt: text('created_at')
+      .notNull()
+      .default(sql`(datetime('now'))`),
+  },
+  (t) => ({
+    createdAtIdx: index('analytics_events_created_at_idx').on(t.createdAt),
+    postIdx: index('analytics_events_post_id_idx').on(t.postId),
+    deviceIdx: index('analytics_events_device_idx').on(t.device),
+    regionIdx: index('analytics_events_region_idx').on(t.region),
+  })
+);
+
 module.exports = {
   users,
   posts,
@@ -216,4 +242,5 @@ module.exports = {
   settings,
   comments,
   reactions,
+  analyticsEvents,
 };

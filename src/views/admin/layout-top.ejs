@@ -22,6 +22,10 @@
         <a href="<%= paths.admin.tags() %>" <%= typeof currentPath !== 'undefined' && currentPath.indexOf('/mantri/tags') === 0 ? 'aria-current="page"' : '' %>>Tags</a>
         <a href="<%= paths.admin.comments() %>" <%= typeof currentPath !== 'undefined' && currentPath.indexOf('/mantri/comments') === 0 ? 'aria-current="page"' : '' %>>Comments</a>
         <a href="<%= paths.admin.media() %>" <%= typeof currentPath !== 'undefined' && currentPath.indexOf('/mantri/media') === 0 ? 'aria-current="page"' : '' %>>Media</a>
+        <a href="<%= paths.admin.analytics() %>" <%= typeof currentPath !== 'undefined' && currentPath.indexOf('/mantri/analytics') === 0 ? 'aria-current="page"' : '' %>>Analytics</a>
+        <% if (typeof isSuperAdmin !== 'undefined' && isSuperAdmin) { %>
+        <a href="<%= paths.admin.authors() %>" <%= typeof currentPath !== 'undefined' && currentPath.indexOf('/mantri/authors') === 0 ? 'aria-current="page"' : '' %>>Authors</a>
+        <% } %>
         <a href="<%= paths.admin.settings() %>" <%= typeof currentPath !== 'undefined' && currentPath.indexOf('/mantri/settings') === 0 ? 'aria-current="page"' : '' %>>Settings</a>
         <a href="<%= paths.home() %>" target="_blank" rel="noopener">View site</a>
         <form class="admin-logout" action="<%= paths.admin.logout() %>" method="post">

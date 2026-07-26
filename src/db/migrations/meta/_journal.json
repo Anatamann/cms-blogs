@@ -43,6 +43,13 @@
       "when": 1721400000005,
       "tag": "0005_post_work_slug",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1721400000006,
+      "tag": "0006_analytics_events",
+      "breakpoints": true
     }
   ]
 }

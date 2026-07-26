@@ -5,13 +5,15 @@
   <p class="lead">Sign in to manage posts and settings.</p>
 
   <% if (error) { %>
-  <p class="flash flash-error" role="alert"><%= error %></p>
+  <p class="flash flash-error admin-login-error" role="alert"><%= error %></p>
+  <% } else if (typeof flash !== 'undefined' && flash && flash.type === 'error') { %>
+  <p class="flash flash-error admin-login-error" role="alert"><%= flash.message %></p>
   <% } %>
 
-  <form method="post" action="<%= paths.admin.login() %>" class="admin-form">
+  <form method="post" action="<%= paths.admin.login() %>" class="admin-form" novalidate>
     <div class="field">
       <label for="username">Username</label>
-      <input id="username" name="username" type="text" autocomplete="username" required value="<%= username %>" />
+      <input id="username" name="username" type="text" autocomplete="username" required value="<%= username %>" autofocus />
     </div>
     <div class="field">
       <label for="password">Password</label>
@@ -19,6 +21,7 @@
     </div>
     <button type="submit" class="btn btn-primary">Sign in</button>
   </form>
+  <p class="muted field-hint">Session needs cookies enabled. Use the public URL from <code>APP_URL</code>.</p>
   <p class="muted"><a href="<%= paths.home() %>">← Back to site</a></p>
 </section>
 

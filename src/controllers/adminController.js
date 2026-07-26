@@ -7,6 +7,7 @@ const categoriesService = require('../services/categories');
 const tagsService = require('../services/tags');
 const settingsService = require('../services/settings');
 const commentsService = require('../services/comments');
+const analyticsService = require('../services/analytics');
 const { paths, slugify, isValidSlug } = require('../utils/slug');
 const { isValidId } = require('../utils/uuid');
 const { renderMarkdown, plainExcerpt } = require('../utils/markdown');
@@ -80,9 +81,14 @@ function parsePostBody(req) {
 }
 
 function loginForm(req, res) {
+  // Prefer one-shot flash (e.g. session-save failures) over empty error
+  const flashErr =
+    res.locals.flash && res.locals.flash.type === 'error'
+      ? res.locals.flash.message
+      : null;
   res.render('admin/login', {
     title: 'Admin Login',
-    error: null,
+    error: flashErr,
     username: '',
   });
 }
@@ -91,11 +97,31 @@ async function loginSubmit(req, res) {
   const username = String(req.body.username || '').trim();
   const password = String(req.body.password || '');
 
-  const user = await usersService.authenticate(username, password);
+  if (!username || !password) {
+    return res.status(400).render('admin/login', {
+      title: 'Admin Login',
+      error: 'Enter both username and password.',
+      username,
+    });
+  }
+
+  let user;
+  try {
+    user = await usersService.authenticate(username, password);
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error('[login] authenticate failed', err);
+    return res.status(500).render('admin/login', {
+      title: 'Admin Login',
+      error: 'Login failed due to a server error. Try again.',
+      username,
+    });
+  }
+
   if (!user) {
     return res.status(401).render('admin/login', {
       title: 'Admin Login',
-      error: 'Invalid username or password.',
+      error: 'Invalid username or password. Check caps lock — login is case-insensitive for username.',
       username,
     });
   }
@@ -104,7 +130,16 @@ async function loginSubmit(req, res) {
   const returnTo = req.session.returnTo || paths.admin.home();
   delete req.session.returnTo;
 
-  req.session.save(() => {
+  req.session.save((err) => {
+    if (err) {
+      // eslint-disable-next-line no-console
+      console.error('[login] session.save failed', err);
+      return res.status(500).render('admin/login', {
+        title: 'Admin Login',
+        error: 'Could not start a session. Cookies may be blocked — try again.',
+        username,
+      });
+    }
     res.redirect(returnTo);
   });
 }
@@ -120,6 +155,7 @@ function dashboard(_req, res) {
   const drafts = postsService.listPosts({ status: 'draft', limit: 5 });
   const all = postsService.listPosts({ status: 'all', limit: 1 });
   const pendingComments = commentsService.countPending();
+  const quickAnalytics = analyticsService.getQuickStats();
 
   res.render('admin/dashboard', {
     title: 'Dashboard',
@@ -130,10 +166,24 @@ function dashboard(_req, res) {
       categories: categoriesService.listCategories().length,
       tags: tagsService.listTags().length,
       pendingComments,
+      totalViews: quickAnalytics.totalViews,
+      totalReactions: quickAnalytics.totalReactions,
     },
     recentPublished: published.items,
     recentDrafts: drafts.items,
     formatDate,
+  });
+}
+
+/**
+ * GET /mantri/analytics — lightweight engagement dashboard.
+ */
+function analyticsGet(req, res) {
+  const days = Math.min(365, Math.max(1, Number(req.query.days) || 30));
+  const summary = analyticsService.getSummary({ days });
+  res.render('admin/analytics', {
+    title: 'Analytics',
+    ...summary,
   });
 }
 
@@ -667,9 +717,11 @@ function postPreview(req, res, next) {
   });
 }
 
-function settingsGet(_req, res) {
+function settingsGet(req, res) {
   const all = settingsService.getAll();
-  const authors = usersService.listUsers();
+  const me = req.session.user
+    ? usersService.getById(req.session.user.id)
+    : null;
 
   res.render('admin/settings', {
     title: 'Settings',
@@ -678,7 +730,8 @@ function settingsGet(_req, res) {
       site_description: all.site_description || '',
       posts_per_page: all.posts_per_page || '10',
     },
-    authors,
+    me,
+    isSuperAdmin: config.isSuperAdmin(req.session.user),
     error: null,
   });
 }
@@ -695,31 +748,146 @@ function settingsPost(req, res) {
     posts_per_page,
   });
 
-  // Optional author bio updates
-  const authorIds = asArray(req.body.authorId).filter(isValidId);
-  for (const id of authorIds) {
-    const displayName = String(req.body[`displayName_${id}`] || '').trim();
-    const bio = String(req.body[`bio_${id}`] || '');
-    if (displayName) {
-      usersService.updateProfile(id, { displayName, bio });
-    }
-  }
-
-  // Refresh session display name if current user updated
+  // Own profile (any author)
   if (req.session.user) {
+    const displayName = String(req.body.displayName || '').trim();
+    const bio = String(req.body.bio || '');
+    if (displayName) {
+      try {
+        usersService.updateProfile(req.session.user.id, { displayName, bio });
+      } catch (err) {
+        req.flash('error', err.message || 'Could not update profile.');
+        return res.redirect(paths.admin.settings());
+      }
+    }
+
     const me = usersService.getById(req.session.user.id);
     if (me) {
-      req.session.user = {
-        id: me.id,
-        username: me.username,
-        displayName: me.displayName,
-        bio: me.bio,
-      };
+      req.session.user = usersService.sessionUser(me);
     }
   }
 
   req.flash('ok', 'Settings saved.');
   res.redirect(paths.admin.settings());
+}
+
+// —— Super-admin: authors ——
+
+function authorsList(_req, res) {
+  res.render('admin/authors-list', {
+    title: 'Authors',
+    authors: usersService.listUsersWithStats(),
+    superAdminUsernames: config.superAdminUsernames,
+  });
+}
+
+function authorNewGet(_req, res) {
+  res.render('admin/author-form', {
+    title: 'New author',
+    author: {
+      id: '',
+      username: '',
+      displayName: '',
+      bio: '',
+    },
+    isNew: true,
+    error: null,
+  });
+}
+
+async function authorCreate(req, res) {
+  try {
+    const user = await usersService.createAuthor({
+      username: req.body.username,
+      password: req.body.password,
+      displayName: req.body.displayName,
+      bio: req.body.bio,
+    });
+    req.flash('ok', `Author @${user.username} created.`);
+    return res.redirect(paths.admin.authors());
+  } catch (err) {
+    return res.status(err.status || 400).render('admin/author-form', {
+      title: 'New author',
+      author: {
+        id: '',
+        username: String(req.body.username || ''),
+        displayName: String(req.body.displayName || ''),
+        bio: String(req.body.bio || ''),
+      },
+      isNew: true,
+      error: err.message || 'Could not create author.',
+    });
+  }
+}
+
+function authorEditGet(req, res, next) {
+  const { id } = req.params;
+  if (!isValidId(id)) return next();
+  const author = usersService.getById(id);
+  if (!author) return next();
+
+  res.render('admin/author-form', {
+    title: `Edit ${author.displayName}`,
+    author,
+    isNew: false,
+    isSuperAdminTarget: config.isSuperAdmin(author),
+    postCount: usersService.countPostsByAuthor(id),
+    error: null,
+  });
+}
+
+async function authorUpdate(req, res, next) {
+  const { id } = req.params;
+  if (!isValidId(id)) return next();
+
+  try {
+    const author = await usersService.updateAuthor(id, {
+      displayName: req.body.displayName,
+      bio: req.body.bio,
+      password: req.body.password,
+    });
+    if (!author) return next();
+
+    // Refresh session if editing self
+    if (req.session.user && req.session.user.id === id) {
+      req.session.user = usersService.sessionUser(author);
+    }
+
+    req.flash('ok', `Author @${author.username} updated.`);
+    return res.redirect(paths.admin.authors());
+  } catch (err) {
+    const author = usersService.getById(id) || {
+      id,
+      username: '',
+      displayName: String(req.body.displayName || ''),
+      bio: String(req.body.bio || ''),
+    };
+    return res.status(err.status || 400).render('admin/author-form', {
+      title: 'Edit author',
+      author: {
+        ...author,
+        displayName: String(req.body.displayName || author.displayName),
+        bio: String(req.body.bio || author.bio || ''),
+      },
+      isNew: false,
+      isSuperAdminTarget: config.isSuperAdmin(author),
+      postCount: usersService.countPostsByAuthor(id),
+      error: err.message || 'Could not update author.',
+    });
+  }
+}
+
+function authorDelete(req, res, next) {
+  const { id } = req.params;
+  if (!isValidId(id)) return next();
+
+  try {
+    usersService.deleteAuthor(id, { actorId: req.session.user?.id });
+    req.flash('ok', 'Author deleted.');
+  } catch (err) {
+    req.flash('error', err.message || 'Could not delete author.');
+  }
+  return res.redirect(paths.admin.authors());
 }
 
 module.exports = {
@@ -738,6 +906,13 @@ module.exports = {
   postDraftForMedia,
   settingsGet,
   settingsPost,
+  authorsList,
+  authorNewGet,
+  authorCreate,
+  authorEditGet,
+  authorUpdate,
+  authorDelete,
+  analyticsGet,
   commentsList,
   commentApprove,
   commentReject,

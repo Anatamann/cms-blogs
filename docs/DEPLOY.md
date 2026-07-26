@@ -69,17 +69,15 @@ curl -sS http://localhost:8080/health/ready
 
 With `AUTO_SEED=true`, the app inserts sample authors/posts if the DB is empty.
 
-| Login | Password |
-|-------|----------|
-| `aria` | `SEED_ADMIN_PASSWORD` (default `changeme` — **change it**) |
-| `gokun` | `Gokun` (seed user **Gokun Earthling**) |
+Seed users and super-admin logins are configured **only in private `.env`** (never in committed example files):
 
-After you have real content and passwords set:
+| Variable | Purpose |
+|----------|---------|
+| `SEED_ADMIN_PASSWORD` | Password for the primary seed author on first create |
+| `SEED_GOKUN_PASSWORD` | Optional second seed author password |
+| `SUPER_ADMIN_USERNAMES` | Comma-separated logins that can open `/mantri/authors` |
 
-1. Set `AUTO_SEED=false` in `.env`
-2. `docker compose up -d` (recreates app with new env)
-
-Seed is **idempotent** (skips if user `aria` already exists), but leave `AUTO_SEED=false` in production.
+Set strong values before first boot. After content exists, leave `AUTO_SEED=true` (idempotent) or set `false`.
 
 ## Environment reference
 
@@ -90,7 +88,7 @@ Seed is **idempotent** (skips if user `aria` already exists), but leave `AUTO_SE
 | `APP_URL` | yes | Public origin (`https://ainme.example`) for RSS/OG/canonical |
 | `SITE_NAME` | no | Default `Ainme` |
 | `AUTO_SEED` | no | Default `false` in compose; use `true` once on empty DB |
-| `SEED_ADMIN_PASSWORD` | if seeding | Password for seed user `aria` |
+| `SEED_ADMIN_PASSWORD` | if seeding | Password for seed user `octopus` |
 | `NGINX_HTTP_PORT` | no | Host port mapped to Nginx (default `8080`) |
 | `DATA_DIR` / `UPLOADS_DIR` | set in compose | `/app/data`, `/app/public/uploads` |
 | `COMPRESS_VIDEO` | no | `true` uses ffmpeg in the image |
@@ -136,12 +134,12 @@ The image includes:
 | `src/db/migrations/*.sql` | All schema migrations (0000–0005), applied on every boot via `getDb()` |
 | `src/db/seed-data/catalog.json` | Post metadata: slugs, **work titles**, **tags**, categories |
 | `src/db/seed-data/*.md` | Full post bodies (feature + test blogs) |
-| `public/test-blogs/*.odt` | Original ODT sources (optional re-import) |
+| `public/test-blogs/*.odt` | Optional only — **not required** for posts; content is in seed-data + DB |
 
 With **`AUTO_SEED=true`** (Compose default), boot runs an **idempotent** seed that:
 
 1. Applies migrations  
-2. Ensures users (`aria`, `gokun`)  
+2. Ensures users (`octopus` / Octopus Sensei, `gokun`)  
 3. Ensures categories + genre tags  
 4. Ensures catalog posts with **work_title / work_slug** and **tag links** (so cards show work names + #tags)
 
@@ -240,7 +238,7 @@ ainme.example {
 ## Security checklist
 
 - [ ] `SESSION_SECRET` from `openssl rand -hex 32` (not a placeholder)
-- [ ] Admin passwords changed (`aria` / `gokun` or your own users)
+- [ ] Admin passwords changed (`octopus` / `gokun` or your own users)
 - [ ] `AUTO_SEED=false` after initial content
 - [ ] `APP_URL` is the public `https://` origin
 - [ ] TLS in front of Nginx
@@ -267,6 +265,7 @@ The app handles `SIGTERM` / `SIGINT`: stops accepting connections, closes SQLite
 |---------|----------------|
 | App exits immediately | `docker compose logs app` — usually weak/missing `SESSION_SECRET` |
 | `compose` error about `SESSION_SECRET` | Create `.env` from `.env.docker.example` and set a long secret |
+| Login succeeds then drops back to login (no error) | `APP_URL` is `http://…` but cookies were Secure-only — fixed by following APP_URL scheme; set `COOKIE_SECURE=false` if needed and restart |
 | 502 from Nginx | App not healthy: `docker compose ps`, `logs app` |
 | Empty site / no posts | `AUTO_SEED` was false on empty DB — run seed once |
 | Uploads lost after rebuild | Ensure volumes `ainme_uploads` still present (`docker volume ls`) |

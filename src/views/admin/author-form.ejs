@@ -1,0 +1,87 @@
+<%- include('layout-top') %>
+
+<header class="admin-page-header">
+  <h1><%= isNew ? 'New author' : 'Edit author' %></h1>
+  <p class="lead">
+    <% if (isNew) { %>
+    Create a CMS login. They can write posts; only super-admins manage authors.
+    <% } else { %>
+    Login: <code>@<%= author.username %></code>
+    <% if (typeof isSuperAdminTarget !== 'undefined' && isSuperAdminTarget) { %>
+    · <span class="chip">Super admin</span>
+    <% } %>
+    <% if (typeof postCount !== 'undefined') { %>
+    · <%= postCount %> post<%= postCount === 1 ? '' : 's' %>
+    <% } %>
+    <% } %>
+  </p>
+</header>
+
+<% if (error) { %>
+<p class="flash flash-error" role="alert"><%= error %></p>
+<% } %>
+
+<form
+  method="post"
+  action="<%= isNew ? paths.admin.authors() : paths.admin.authorEdit(author.id) %>"
+  class="admin-form"
+>
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+
+  <% if (isNew) { %>
+  <div class="field">
+    <label for="username">Username (login)</label>
+    <input
+      id="username"
+      name="username"
+      type="text"
+      required
+      pattern="[a-z][a-z0-9_]{2,31}"
+      maxlength="32"
+      value="<%= author.username %>"
+      autocomplete="off"
+      placeholder="e.g. gokun"
+    />
+    <p class="field-hint">3–32 chars, lowercase letters, numbers, underscore. Starts with a letter.</p>
+  </div>
+  <% } %>
+
+  <div class="field">
+    <label for="displayName">Display name</label>
+    <input
+      id="displayName"
+      name="displayName"
+      type="text"
+      required
+      maxlength="120"
+      value="<%= author.displayName %>"
+      placeholder="e.g. Octopus Sensei"
+    />
+  </div>
+
+  <div class="field">
+    <label for="bio">Bio</label>
+    <textarea id="bio" name="bio" rows="3" maxlength="2000" placeholder="Short public bio…"><%= author.bio || '' %></textarea>
+  </div>
+
+  <div class="field">
+    <label for="password"><%= isNew ? 'Password' : 'New password (optional)' %></label>
+    <input
+      id="password"
+      name="password"
+      type="password"
+      <%= isNew ? 'required' : '' %>
+      minlength="4"
+      maxlength="200"
+      autocomplete="new-password"
+      placeholder="<%= isNew ? 'At least 4 characters' : 'Leave blank to keep current' %>"
+    />
+  </div>
+
+  <div class="admin-actions">
+    <button type="submit" class="btn btn-primary"><%= isNew ? 'Create author' : 'Save author' %></button>
+    <a class="btn btn-ghost" href="<%= paths.admin.authors() %>">Cancel</a>
+  </div>
+</form>
+
+<%- include('layout-bottom') %>

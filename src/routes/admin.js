@@ -5,6 +5,7 @@ const adminController = require('../controllers/adminController');
 const mediaController = require('../controllers/mediaController');
 const {
   requireAuth,
+  requireSuperAdmin,
   redirectIfAuthenticated,
   ensureCsrf,
   verifyCsrf,
@@ -59,6 +60,29 @@ router.get('/posts/:id/preview', adminController.postPreview);
 
 router.get('/settings', adminController.settingsGet);
 router.post('/settings', writeLimiter, verifyCsrf, adminController.settingsPost);
+
+// Lightweight analytics (all authors)
+router.get('/analytics', adminController.analyticsGet);
+
+// Super-admin: author accounts
+router.get('/authors', requireSuperAdmin, adminController.authorsList);
+router.get('/authors/new', requireSuperAdmin, adminController.authorNewGet);
+router.post('/authors', writeLimiter, verifyCsrf, requireSuperAdmin, adminController.authorCreate);
+router.get('/authors/:id/edit', requireSuperAdmin, adminController.authorEditGet);
+router.post(
+  '/authors/:id/edit',
+  writeLimiter,
+  verifyCsrf,
+  requireSuperAdmin,
+  adminController.authorUpdate
+);
+router.post(
+  '/authors/:id/delete',
+  writeLimiter,
+  verifyCsrf,
+  requireSuperAdmin,
+  adminController.authorDelete
+);
 
 // Tags (genres / topics)
 router.get('/tags', adminController.tagsList);

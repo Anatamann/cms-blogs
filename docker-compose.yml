@@ -24,19 +24,28 @@ services:
       NODE_ENV: ${NODE_ENV:-production}
       PORT: 3000
       SITE_NAME: ${SITE_NAME:-Ainme}
+      # Public origin (feeds, OG, Secure cookies when https://)
       APP_URL: ${APP_URL:-http://localhost:8080}
       # Must be ≥24 random chars in production (app refuses weak defaults)
       SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET in .env — e.g. openssl rand -hex 32}
+      # Optional: true|false — default follows APP_URL scheme (https → Secure cookies)
+      COOKIE_SECURE: ${COOKIE_SECURE:-}
       DATA_DIR: /app/data
       DATABASE_FILE: ${DATABASE_FILE:-ainme.sqlite}
       UPLOADS_DIR: /app/public/uploads
       # true = ensure catalog posts/tags/work titles on every boot (idempotent)
       AUTO_SEED: ${AUTO_SEED:-true}
-      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-changeme}
+      # Passwords / super-admins: set only in private .env (no secrets in this file)
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-}
+      SEED_GOKUN_PASSWORD: ${SEED_GOKUN_PASSWORD:-}
+      SEED_RESET_OCTOPUS_PASSWORD: ${SEED_RESET_OCTOPUS_PASSWORD:-false}
+      SUPER_ADMIN_USERNAMES: ${SUPER_ADMIN_USERNAMES:-}
       COMPRESS_VIDEO: ${COMPRESS_VIDEO:-false}
       RATE_LIMIT_LOGIN: ${RATE_LIMIT_LOGIN:-20}
       RATE_LIMIT_CONTACT: ${RATE_LIMIT_CONTACT:-15}
       RATE_LIMIT_WRITE: ${RATE_LIMIT_WRITE:-120}
+      RATE_LIMIT_COMMENT: ${RATE_LIMIT_COMMENT:-20}
+      RATE_LIMIT_REACTION: ${RATE_LIMIT_REACTION:-60}
     volumes:
       - ainme_data:/app/data
       - ainme_uploads:/app/public/uploads

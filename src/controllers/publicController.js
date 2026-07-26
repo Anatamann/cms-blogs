@@ -12,6 +12,7 @@ const { paths, isValidSlug, slugify } = require('../utils/slug');
 const { renderMarkdown, plainExcerpt } = require('../utils/markdown');
 const { formatDate, escapeXml, absoluteUrl } = require('../utils/format');
 const { ensureVisitorKey } = require('../utils/visitor');
+const analyticsService = require('../services/analytics');
 
 function siteMeta() {
   const all = settingsService.getAll();
@@ -171,17 +172,26 @@ function blogPost(req, res, next) {
   if (req.session) {
     if (!req.session.viewedPosts) req.session.viewedPosts = [];
     if (!req.session.viewedPosts.includes(post.id)) {
-      const next = postsService.incrementViewCount(post.id);
-      if (next != null) viewCount = next;
+      const nextCount = postsService.incrementViewCount(post.id);
+      if (nextCount != null) viewCount = nextCount;
       req.session.viewedPosts.push(post.id);
       // Cap array growth for long sessions
       if (req.session.viewedPosts.length > 200) {
         req.session.viewedPosts = req.session.viewedPosts.slice(-100);
       }
+      // Lightweight analytics (device / region) — same session gate as views
+      analyticsService.recordPageview(req, {
+        postId: post.id,
+        path: paths.post(post.slug),
+      });
     }
   } else {
-    const next = postsService.incrementViewCount(post.id);
-    if (next != null) viewCount = next;
+    const nextCount = postsService.incrementViewCount(post.id);
+    if (nextCount != null) viewCount = nextCount;
+    analyticsService.recordPageview(req, {
+      postId: post.id,
+      path: paths.post(post.slug),
+    });
   }
 
   const presented = presentPost({ ...post, viewCount });

@@ -2,7 +2,13 @@
 
 <header class="admin-page-header">
   <h1>Settings</h1>
-  <p class="lead">Site identity and author bios.</p>
+  <p class="lead">
+    Site identity and your profile.
+    <% if (isSuperAdmin) { %>
+    Super-admins manage all authors under
+    <a href="<%= paths.admin.authors() %>">Authors</a>.
+    <% } %>
+  </p>
 </header>
 
 <% if (error) { %>
@@ -28,23 +34,26 @@
     </div>
   </fieldset>
 
+  <% if (me) { %>
   <fieldset class="field">
-    <legend>Authors</legend>
-    <% authors.forEach(function (author) { %>
-    <div class="author-edit card">
-      <input type="hidden" name="authorId" value="<%= author.id %>" />
-      <p class="muted">@<%= author.username %> · <code><%= author.id %></code></p>
-      <div class="field">
-        <label for="displayName_<%= author.id %>">Display name</label>
-        <input id="displayName_<%= author.id %>" name="displayName_<%= author.id %>" type="text" value="<%= author.displayName %>" />
-      </div>
-      <div class="field">
-        <label for="bio_<%= author.id %>">Bio</label>
-        <textarea id="bio_<%= author.id %>" name="bio_<%= author.id %>" rows="2"><%= author.bio || '' %></textarea>
-      </div>
+    <legend>Your profile (@<%= me.username %>)</legend>
+    <div class="field">
+      <label for="displayName">Display name</label>
+      <input id="displayName" name="displayName" type="text" required maxlength="120" value="<%= me.displayName %>" />
     </div>
-    <% }) %>
+    <div class="field">
+      <label for="bio">Bio</label>
+      <textarea id="bio" name="bio" rows="3" maxlength="2000"><%= me.bio || '' %></textarea>
+    </div>
+    <p class="field-hint">
+      <% if (isSuperAdmin) { %>
+      To set passwords or create authors, use <a href="<%= paths.admin.authors() %>">Authors</a>.
+      <% } else { %>
+      Ask a super-admin to reset your password if needed.
+      <% } %>
+    </p>
   </fieldset>
+  <% } %>
 
   <button type="submit" class="btn btn-primary">Save settings</button>
 </form>

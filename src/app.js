@@ -38,6 +38,16 @@ function createApp() {
   app.use(express.urlencoded({ extended: true, limit: '1mb' }));
   app.use(express.json({ limit: '1mb' }));
 
+  // Secure cookies only when the public site is HTTPS (or COOKIE_SECURE=true).
+  // NODE_ENV=production + http://localhost:8080 must keep Secure off, or the
+  // browser never stores ainme.sid and login redirects look like a silent failure.
+  const cookieSecure =
+    process.env.COOKIE_SECURE === 'true' ||
+    process.env.COOKIE_SECURE === '1' ||
+    (process.env.COOKIE_SECURE !== 'false' &&
+      process.env.COOKIE_SECURE !== '0' &&
+      config.publicIsHttps);
+
   app.use(
     session({
       name: 'ainme.sid',
@@ -47,7 +57,8 @@ function createApp() {
       cookie: {
         httpOnly: true,
         sameSite: 'lax',
-        secure: config.isProd,
+        // 'auto' respects X-Forwarded-Proto when trust proxy is on (real TLS edge)
+        secure: cookieSecure ? 'auto' : false,
         maxAge: 7 * 24 * 60 * 60 * 1000,
       },
     })

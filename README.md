@@ -42,7 +42,9 @@ Open [http://localhost:3000](http://localhost:3000).
 | `npm run backup` | Tar SQLite + uploads → `backups/` |
 | `npm test` | All of the above |
 
-Default seed logins: **aria** (password from `SEED_ADMIN_PASSWORD`, default `changeme`) and **gokun** / **Gokun** (display name: Gokun Earthling).
+Seed creates author accounts (e.g. display name Octopus Sensei). **Set passwords and super-admins only in private `.env`** (`SEED_ADMIN_PASSWORD`, `SUPER_ADMIN_USERNAMES`) — never commit real secrets. Example files use empty placeholders only.
+
+Super-admins manage authors at `/mantri/authors` when `SUPER_ADMIN_USERNAMES` lists their login.
 
 ## Docker Compose (production-style)
 
@@ -143,13 +145,14 @@ Categories: `reviews`, `news`, `fan-theories`. Genre tags include Action, Comedy
 
 Draft posts are never listed or reachable by public slug.
 
-### Engagement
+### Engagement & analytics
 
 | Feature | Behavior |
 |---------|----------|
-| **Views** | Simple integer on each post; +1 once per browser session per post |
+| **Views** | Integer on each post; +1 once per browser session per post |
 | **Reactions** | 👍 🔥 💜 😮 — toggle per visitor (session); counts on the post |
 | **Comments** | Name + optional email + body; **pending until approved** in Admin → Comments |
+| **Analytics** | Admin **Analytics** (`/mantri/analytics`): total views, per-post views, reaction totals, devices, regions (CDN country headers when available). No third-party scripts. |
 
 Public routes: `POST /blog/:slug/comments`, `POST /blog/:slug/reactions` (slug URLs only).
 

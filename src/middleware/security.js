@@ -19,11 +19,12 @@ const cspDirectives = {
   scriptSrc: ["'self'", "'unsafe-inline'"],
   styleSrc: ["'self'", "'unsafe-inline'"],
   connectSrc: ["'self'"],
-  upgradeInsecureRequests: config.isProd ? [] : null,
+  // Only force HTTPS upgrades when the public APP_URL is https://
+  upgradeInsecureRequests: config.publicIsHttps ? [] : null,
 };
 
 // Remove null directives (helmet rejects them)
-if (!config.isProd) {
+if (!config.publicIsHttps) {
   delete cspDirectives.upgradeInsecureRequests;
 }
 
@@ -35,7 +36,7 @@ const helmetOptions = {
   crossOriginEmbedderPolicy: false,
   crossOriginResourcePolicy: { policy: 'same-site' },
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
-  hsts: config.isProd
+  hsts: config.publicIsHttps
     ? { maxAge: 15552000, includeSubDomains: true, preload: false }
     : false,
 };

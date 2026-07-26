@@ -176,6 +176,7 @@ async function main() {
   getDb();
 
   const author =
+    getDb().select().from(users).where(eq(users.username, 'octopus')).get() ||
     getDb().select().from(users).where(eq(users.username, 'aria')).get() ||
     getDb().select().from(users).all()[0];
 

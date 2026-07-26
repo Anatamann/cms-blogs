@@ -2,13 +2,17 @@
 
 const { paths } = require('../utils/slug');
 const crypto = require('crypto');
+const config = require('../config');
 
 /**
  * Ensure session user for all /admin routes except login.
  */
 function requireAuth(req, res, next) {
   if (req.session && req.session.user) {
+    // Refresh super-admin flag from env on each request (env can change without re-login)
+    req.session.user.isSuperAdmin = config.isSuperAdmin(req.session.user);
     res.locals.currentUser = req.session.user;
+    res.locals.isSuperAdmin = !!req.session.user.isSuperAdmin;
     return next();
   }
 
@@ -17,6 +21,18 @@ function requireAuth(req, res, next) {
   }
 
   return res.redirect(paths.admin.login());
+}
+
+/**
+ * Super-admin only (author management, etc.).
+ */
+function requireSuperAdmin(req, res, next) {
+  if (req.session?.user && config.isSuperAdmin(req.session.user)) {
+    return next();
+  }
+  const err = new Error('Super-admin access required.');
+  err.status = 403;
+  return next(err);
 }
 
 /**
@@ -70,11 +86,15 @@ function exposeAdminLocals(req, res, next) {
   res.locals.csrfToken = req.session?.csrfToken || '';
   res.locals.currentUser = req.session?.user || null;
   res.locals.isAdmin = true;
+  res.locals.isSuperAdmin = !!(
+    req.session?.user && config.isSuperAdmin(req.session.user)
+  );
   next();
 }
 
 module.exports = {
   requireAuth,
+  requireSuperAdmin,
   redirectIfAuthenticated,
   ensureCsrf,
   verifyCsrf,

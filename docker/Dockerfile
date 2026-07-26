@@ -32,14 +32,15 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY package.json ./
 # Application + all Drizzle migrations (src/db/migrations/0000…0005)
 COPY src ./src
-# Static site + homepage frames + public/test-blogs ODTs
+# Static site + homepage frames (posts live in SQLite / seed-data, not public/)
 COPY public ./public
-# Ops + ODT import helper
+# Ops helpers (import-test-blogs.js optional if ODTs absent)
 COPY scripts/backup.sh scripts/restore.sh scripts/import-test-blogs.js ./scripts/
 
 # Verify migrations + seed catalog shipped in the image (fail build if missing)
 RUN test -f src/db/migrations/0000_initial.sql \
   && test -f src/db/migrations/0005_post_work_slug.sql \
+  && test -f src/db/migrations/0006_analytics_events.sql \
   && test -f src/db/seed-data/catalog.json \
   && test -f src/db/seed-data/dr-stone-season-2-stone-wars.md \
   && test -f src/db/seed-data/mushoku-tensei-season-1-recap.md \
