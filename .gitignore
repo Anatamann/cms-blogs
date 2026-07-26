@@ -23,7 +23,7 @@ public/uploads/videos/*
 
 # Large local media (hero frames can be regenerated; omit from public clone noise)
 public/videos/
-
+SECURITY.md
 # Backups (may contain DB + private content)
 backups/
 *.tar.gz
