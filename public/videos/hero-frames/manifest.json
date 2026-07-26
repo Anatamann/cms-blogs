@@ -1,0 +1,8 @@
+{
+  "frameCount": 123,
+  "fps": 30,
+  "pattern": "/videos/hero-frames/frame-{i}.webp",
+  "pad": 4,
+  "width": 1280,
+  "height": 720
+}

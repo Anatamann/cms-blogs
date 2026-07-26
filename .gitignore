@@ -22,7 +22,7 @@ public/uploads/videos/*
 !public/uploads/**/.gitkeep
 
 # Large local media (hero frames can be regenerated; omit from public clone noise)
-public/videos/
+public/videos/*.mp4
 SECURITY.md
 # Backups (may contain DB + private content)
 backups/
