@@ -6,7 +6,7 @@ Reviews, recaps, news, and deep cuts with a 90s / millennial retro-modern look: 
 
 ![Node.js](https://img.shields.io/badge/node-%3E%3D20-brightgreen)
 ![Stack](https://img.shields.io/badge/stack-Express%20%7C%20SQLite%20%7C%20Docker-blue)
-![License](https://img.shields.io/badge/license-see%20repo-lightgrey)
+![License](https://img.shields.io/badge/license-MIT-green)
 
 ---
 
@@ -197,7 +197,7 @@ Issues and pull requests are welcome if this repo is open for collaboration. Ple
 
 ## License
 
-Proprietary / all rights reserved unless a `LICENSE` file is added to this repository. Contact the maintainer before commercial use or redistribution.
+This project is licensed under the [MIT License](LICENSE).
 
 ---
 

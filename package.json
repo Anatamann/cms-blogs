@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Ainme — anime blog & CMS for 90s millennial fans. Retro-modern UI, Dockerized, 1–2 authors",
   "private": true,
+  "license": "MIT",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
