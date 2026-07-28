@@ -1054,6 +1054,13 @@ code {
 .post-card__excerpt {
   margin: 0 0 0.75rem;
   color: var(--muted);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+  min-height: 3.6em;
+  line-height: 1.4;
 }
 
 .post-card__more {

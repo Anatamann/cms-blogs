@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { execFile } = require('child_process');
 const { promisify } = require('util');
-const { desc, eq, and } = require('drizzle-orm');
+const { desc, eq, and, or, like, sql } = require('drizzle-orm');
 const sharp = require('sharp');
 
 const config = require('../config');
@@ -384,7 +384,7 @@ function getById(id) {
 }
 
 /**
- * @param {{ type?: string, limit?: number, page?: number }} [opts]
+ * @param {{ type?: string, limit?: number, page?: number, q?: string }} [opts]
  */
 function listMedia(opts = {}) {
   const db = getDb();
@@ -396,9 +396,13 @@ function listMedia(opts = {}) {
   if (opts.type && ['image', 'gif', 'video'].includes(opts.type)) {
     conditions.push(eq(media.type, opts.type));
   }
+  const q = String(opts.q || '').trim();
+  if (q) {
+    const term = `%${q.replace(/%/g, '')}%`;
+    conditions.push(or(like(media.filename, term), like(media.alt, term)));
+  }
   const where = conditions.length ? and(...conditions) : undefined;
 
-  const { sql } = require('drizzle-orm');
   const countRow = db
     .select({ count: sql`count(*)`.mapWith(Number) })
     .from(media)

@@ -40,6 +40,8 @@ const posts = sqliteTable(
     workSlug: text('work_slug').notNull().default(''),
     excerpt: text('excerpt').notNull().default(''),
     bodyMd: text('body_md').notNull().default(''),
+    /** Public path or absolute URL for Open Graph / share image */
+    coverImage: text('cover_image').notNull().default(''),
     status: text('status').notNull().default('draft'), // draft | published
     authorId: text('author_id')
       .notNull()

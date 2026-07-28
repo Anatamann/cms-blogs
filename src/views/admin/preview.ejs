@@ -35,7 +35,7 @@
     <% if (post.publishedLabel) { %><%= post.publishedLabel %><% } %>
     <% if (post.author) { %> · <%= post.author.displayName %><% } %>
   </p>
-  <% if (post.excerpt) { %>
+  <% if (post.excerpt && !post.hideExcerpt) { %>
   <p class="lead"><%= post.excerpt %></p>
   <% } %>
   <div class="prose">

@@ -21,11 +21,13 @@ function mediaLibrary(req, res) {
     : 'all';
   const page = Math.max(1, Number(req.query.page) || 1);
   const returnTo = safeAdminReturnTo(req.query.returnTo);
+  const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
 
   const result = mediaService.listMedia({
     type: type === 'all' ? undefined : type,
     page,
     limit: 24,
+    q: q || undefined,
   });
 
   res.render('admin/media', {
@@ -33,6 +35,7 @@ function mediaLibrary(req, res) {
     items: result.items,
     pagination: result,
     typeFilter: type,
+    q,
     formatDate,
     error: null,
     returnTo,
@@ -45,35 +48,51 @@ async function mediaUpload(req, res) {
     ? req.body.type || req.query.type
     : 'all';
   const returnTo = safeAdminReturnTo(req.body.returnTo || req.query.returnTo);
+  const files = req.files && req.files.length ? req.files : req.file ? [req.file] : [];
 
-  if (!req.file) {
-    req.flash('error', 'Choose a file to upload.');
+  if (!files.length) {
+    req.flash('error', 'Choose one or more files to upload.');
     return res.redirect(mediaRedirect(paths.admin.media(), { type, returnTo }));
   }
 
-  try {
-    const alt = String(req.body.alt || '').trim();
-    const item = await mediaService.processAndStore(
-      req.file.buffer,
-      req.file.originalname,
-      req.file.mimetype,
-      { alt }
-    );
+  const alt = String(req.body.alt || '').trim();
+  const ok = [];
+  const failed = [];
+
+  for (const file of files) {
+    try {
+      const item = await mediaService.processAndStore(
+        file.buffer,
+        file.originalname,
+        file.mimetype,
+        { alt }
+      );
+      ok.push(item.filename || item.type);
+    } catch (err) {
+      failed.push(`${file.originalname || 'file'}: ${err.message || 'failed'}`);
+    }
+  }
+
+  if (ok.length && !failed.length) {
     req.flash(
       'ok',
       returnTo
-        ? `Uploaded ${item.type}: ${item.filename}. Continue editing your post — use Insert media to embed it.`
-        : `Uploaded ${item.type}: ${item.filename}`
+        ? `Uploaded ${ok.length} file(s). Continue editing — use Insert media to embed.`
+        : `Uploaded ${ok.length} file(s).`
     );
-    // Prefer returning to the post editor when we came from there
-    if (returnTo) {
-      return res.redirect(returnTo);
-    }
-    return res.redirect(mediaRedirect(paths.admin.media(), { type }));
-  } catch (err) {
-    req.flash('error', err.message || 'Upload failed.');
-    return res.redirect(mediaRedirect(paths.admin.media(), { type, returnTo }));
+  } else if (ok.length && failed.length) {
+    req.flash(
+      'ok',
+      `Uploaded ${ok.length}; ${failed.length} failed: ${failed.slice(0, 3).join('; ')}`
+    );
+  } else {
+    req.flash('error', failed[0] || 'Upload failed.');
   }
+
+  if (returnTo && ok.length) {
+    return res.redirect(returnTo);
+  }
+  return res.redirect(mediaRedirect(paths.admin.media(), { type, returnTo }));
 }
 
 function mediaDelete(req, res, next) {
@@ -108,13 +127,22 @@ function mediaUpdateAlt(req, res, next) {
 }
 
 /**
- * JSON list for post editor embed panel.
+ * JSON list for post editor media picker modal.
+ * Query: q, type, page, limit
  */
 function mediaJson(req, res) {
+  const type = ['image', 'gif', 'video'].includes(req.query.type)
+    ? req.query.type
+    : undefined;
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const limit = Math.min(48, Math.max(1, Number(req.query.limit) || 24));
+  const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+
   const result = mediaService.listMedia({
-    type: req.query.type || undefined,
-    page: 1,
-    limit: 30,
+    type,
+    page,
+    limit,
+    q: q || undefined,
   });
   res.json({
     items: result.items.map((m) => ({
@@ -126,6 +154,9 @@ function mediaJson(req, res) {
       alt: m.alt,
       filename: m.filename,
     })),
+    page: result.page,
+    totalPages: result.totalPages,
+    total: result.total,
   });
 }
 

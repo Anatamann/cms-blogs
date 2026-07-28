@@ -9,7 +9,13 @@ const usersService = require('../services/users');
 const commentsService = require('../services/comments');
 const reactionsService = require('../services/reactions');
 const { paths, isValidSlug, slugify } = require('../utils/slug');
-const { renderMarkdown, plainExcerpt } = require('../utils/markdown');
+const {
+  renderMarkdown,
+  plainExcerpt,
+  truncateText,
+  excerptDuplicatesBody,
+  firstMarkdownImage,
+} = require('../utils/markdown');
 const { formatDate, escapeXml, absoluteUrl } = require('../utils/format');
 const { ensureVisitorKey } = require('../utils/visitor');
 const analyticsService = require('../services/analytics');
@@ -37,17 +43,41 @@ function parsePage(query) {
   return Number.isFinite(n) && n >= 1 ? Math.floor(n) : 1;
 }
 
+const CARD_EXCERPT_LEN = 150;
+const DEFAULT_OG_PATH = '/images/og-default.svg';
+
 function presentPostCard(post) {
   if (!post) return null;
   const workSlug =
     post.workSlug || (post.workTitle ? slugify(post.workTitle) : '');
+  const rawExcerpt = post.excerpt || plainExcerpt(post.bodyMd, CARD_EXCERPT_LEN);
   return {
     ...post,
-    excerpt: post.excerpt || plainExcerpt(post.bodyMd, 140),
+    excerpt: truncateText(rawExcerpt, CARD_EXCERPT_LEN),
     publishedLabel: formatDate(post.publishedAt || post.createdAt),
     url: paths.post(post.slug),
     workUrl: workSlug ? paths.work(workSlug) : null,
   };
+}
+
+/**
+ * Absolute Open Graph image for a page/post.
+ * @param {object|null} [post]
+ */
+function resolveOgImage(post) {
+  if (post) {
+    const cover = String(post.coverImage || '').trim();
+    if (cover) {
+      return cover.startsWith('http') ? cover : absoluteUrl(config.appUrl, cover);
+    }
+    const fromBody = firstMarkdownImage(post.bodyMd);
+    if (fromBody) {
+      return fromBody.startsWith('http')
+        ? fromBody
+        : absoluteUrl(config.appUrl, fromBody);
+    }
+  }
+  return absoluteUrl(config.appUrl, DEFAULT_OG_PATH);
 }
 
 function presentPost(post) {
@@ -120,6 +150,7 @@ function home(req, res) {
     metaDescription: meta.siteDescription,
     siteDescription: meta.siteDescription,
     canonicalUrl: absoluteUrl(config.appUrl, paths.home()),
+    ogImage: resolveOgImage(null),
     posts: latest.items.map(presentPostCard),
     pageScripts: ['/js/home-scroll.js'],
     ...sidebarData(),
@@ -203,6 +234,7 @@ function blogPost(req, res, next) {
   }));
   const reactions = reactionsService.getForPost(post.id, visitorKey);
 
+  const ogImage = resolveOgImage(presented);
   res.render('pages/post', {
     title: presented.title,
     metaDescription: presented.excerpt,
@@ -213,11 +245,13 @@ function blogPost(req, res, next) {
     commentFlash: req.session?.commentFlash || null,
     commentForm: req.session?.commentForm || { name: '', email: '', body: '' },
     canonicalUrl: absoluteUrl(config.appUrl, paths.post(presented.slug)),
+    ogImage,
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'Article',
       headline: presented.title,
       description: presented.excerpt,
+      image: ogImage,
       datePublished: presented.publishedAt || presented.createdAt,
       dateModified: presented.updatedAt,
       author: presented.author

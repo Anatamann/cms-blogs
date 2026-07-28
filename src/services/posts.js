@@ -279,6 +279,7 @@ function incrementViewCount(id) {
  *   workTitle?: string,
  *   excerpt?: string,
  *   bodyMd?: string,
+ *   coverImage?: string,
  *   status?: 'draft'|'published',
  *   authorId: string,
  *   categoryIds?: string[],
@@ -310,6 +311,7 @@ async function createPost(input) {
       workSlug: workSlugFromTitle(workTitle),
       excerpt: input.excerpt || '',
       bodyMd: input.bodyMd || '',
+      coverImage: String(input.coverImage || '').trim().slice(0, 500),
       status,
       authorId: input.authorId,
       viewCount: 0,
@@ -331,6 +333,7 @@ async function createPost(input) {
  *   workTitle?: string,
  *   excerpt?: string,
  *   bodyMd?: string,
+ *   coverImage?: string,
  *   status?: 'draft'|'published',
  *   categoryIds?: string[],
  *   tagIds?: string[],
@@ -353,6 +356,9 @@ async function updatePost(id, input) {
   }
   if (input.excerpt != null) patch.excerpt = input.excerpt;
   if (input.bodyMd != null) patch.bodyMd = input.bodyMd;
+  if (input.coverImage != null) {
+    patch.coverImage = String(input.coverImage).trim().slice(0, 500);
+  }
 
   if (input.updateSlug && (input.slug || input.title)) {
     const slug = await allocateSlug(input.slug || input.title, id);

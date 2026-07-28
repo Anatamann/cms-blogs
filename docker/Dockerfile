@@ -41,6 +41,7 @@ COPY scripts/backup.sh scripts/restore.sh scripts/import-test-blogs.js ./scripts
 RUN test -f src/db/migrations/0000_initial.sql \
   && test -f src/db/migrations/0005_post_work_slug.sql \
   && test -f src/db/migrations/0006_analytics_events.sql \
+  && test -f src/db/migrations/0007_post_cover_image.sql \
   && test -f src/db/seed-data/catalog.json \
   && test -f src/db/seed-data/dr-stone-season-2-stone-wars.md \
   && test -f src/db/seed-data/mushoku-tensei-season-1-recap.md \

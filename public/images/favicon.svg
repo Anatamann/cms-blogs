@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Ainme">
+  <rect width="32" height="32" rx="6" fill="#0a0a0f"/>
+  <rect x="1" y="1" width="30" height="30" rx="5" fill="none" stroke="#ff00ff" stroke-width="1.5" opacity="0.9"/>
+  <text x="16" y="22" text-anchor="middle" font-family="ui-monospace, monospace" font-size="16" font-weight="700" fill="#00ffff">A</text>
+  <circle cx="25" cy="8" r="2" fill="#ff00ff" opacity="0.85"/>
+</svg>

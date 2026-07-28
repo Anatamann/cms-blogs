@@ -10,7 +10,11 @@ const commentsService = require('../services/comments');
 const analyticsService = require('../services/analytics');
 const { paths, slugify, isValidSlug } = require('../utils/slug');
 const { isValidId } = require('../utils/uuid');
-const { renderMarkdown, plainExcerpt } = require('../utils/markdown');
+const {
+  renderMarkdown,
+  plainExcerpt,
+  excerptDuplicatesBody,
+} = require('../utils/markdown');
 const { formatDate } = require('../utils/format');
 const { safeAdminReturnTo } = require('../utils/returnTo');
 
@@ -74,10 +78,11 @@ function parsePostBody(req) {
   const workTitle = String(req.body.workTitle || '').trim().slice(0, 200);
   const excerpt = String(req.body.excerpt || '').trim();
   const bodyMd = String(req.body.bodyMd || '');
+  const coverImage = String(req.body.coverImage || '').trim().slice(0, 500);
   const status = req.body.status === 'published' ? 'published' : 'draft';
   const updateSlug = req.body.updateSlug === '1' || req.body.updateSlug === 'on';
 
-  return { title, slug, workTitle, excerpt, bodyMd, status, updateSlug };
+  return { title, slug, workTitle, excerpt, bodyMd, coverImage, status, updateSlug };
 }
 
 function loginForm(req, res) {
@@ -401,6 +406,7 @@ function postNewGet(req, res) {
         workTitle: draft.workTitle || '',
         excerpt: draft.excerpt || '',
         bodyMd: draft.bodyMd || '',
+        coverImage: draft.coverImage || '',
         status: draft.status || 'draft',
         categories: [],
         tags: [],
@@ -411,6 +417,7 @@ function postNewGet(req, res) {
         workTitle: '',
         excerpt: '',
         bodyMd: '',
+        coverImage: '',
         status: 'draft',
         categories: [],
         tags: [],
@@ -457,6 +464,7 @@ async function postCreate(req, res) {
       workTitle: data.workTitle,
       excerpt: data.excerpt,
       bodyMd: data.bodyMd,
+      coverImage: data.coverImage,
       status: data.status,
       authorId: req.session.user.id,
       categoryIds,
@@ -498,6 +506,7 @@ function postEditGet(req, res, next) {
         workTitle: draft.workTitle,
         excerpt: draft.excerpt,
         bodyMd: draft.bodyMd,
+        coverImage: draft.coverImage != null ? draft.coverImage : post.coverImage,
         status: draft.status,
       }
     : post;
@@ -547,6 +556,7 @@ async function postUpdate(req, res, next) {
       workTitle: data.workTitle,
       excerpt: data.excerpt,
       bodyMd: data.bodyMd,
+      coverImage: data.coverImage,
       status: data.status,
       categoryIds,
       tagIds,
@@ -606,6 +616,7 @@ function saveFormDraftFromRequest(req) {
     workTitle: data.workTitle,
     excerpt: data.excerpt,
     bodyMd: data.bodyMd,
+    coverImage: data.coverImage,
     status: data.status,
     updateSlug: data.updateSlug,
     categoryIds,
@@ -663,6 +674,7 @@ function postPreviewForm(req, res) {
 
   const bodyHtml = renderMarkdown(data.bodyMd || '');
   const excerpt = data.excerpt || plainExcerpt(data.bodyMd || '');
+  const hideExcerpt = excerptDuplicatesBody(excerpt, data.bodyMd || '');
   const author = req.session.user
     ? {
         id: req.session.user.id,
@@ -679,6 +691,7 @@ function postPreviewForm(req, res) {
         title: data.title || 'Untitled',
         slug: slugGuess,
         excerpt,
+        hideExcerpt,
         bodyHtml,
         status: data.status,
         publishedLabel: formatDate(new Date().toISOString()),
@@ -701,6 +714,7 @@ function postPreview(req, res, next) {
 
   const bodyHtml = renderMarkdown(post.bodyMd);
   const excerpt = post.excerpt || plainExcerpt(post.bodyMd);
+  const hideExcerpt = excerptDuplicatesBody(excerpt, post.bodyMd || '');
 
   res.render('admin/preview', {
     title: `Preview: ${post.title}`,
@@ -708,6 +722,7 @@ function postPreview(req, res, next) {
       ...post,
       bodyHtml,
       excerpt,
+      hideExcerpt,
       publishedLabel: formatDate(post.publishedAt || post.createdAt),
       url: paths.post(post.slug),
     },

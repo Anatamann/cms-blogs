@@ -31,126 +31,146 @@
 <p class="flash flash-error" role="alert"><%= error %></p>
 <% } %>
 
-<form method="post" action="<%= formAction %>" class="admin-form post-form" id="post-editor-form">
+<form method="post" action="<%= formAction %>" class="admin-form post-form post-editor" id="post-editor-form">
   <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
   <input type="hidden" name="_mode" value="<%= mode %>" />
   <% if (mode === 'edit') { %>
   <input type="hidden" name="_postId" value="<%= post.id %>" />
   <% } %>
 
-  <div class="field">
-    <label for="title">Title</label>
-    <input id="title" name="title" type="text" maxlength="200" value="<%= post.title %>" />
-  </div>
-
-  <div class="field">
-    <label for="workTitle">Anime / manga / work</label>
-    <input
-      id="workTitle"
-      name="workTitle"
-      type="text"
-      maxlength="200"
-      value="<%= post.workTitle || '' %>"
-      placeholder="e.g. Mushoku Tensei, Oshi no Ko, Attack on Titan"
-    />
-    <p class="field-hint">Name of the series or work this post is about. Shown on post cards next to Read.</p>
-  </div>
-
-  <div class="field-row">
+  <div class="post-editor__main">
     <div class="field">
-      <label for="slug">Slug <span class="muted">(public URL segment)</span></label>
-      <input id="slug" name="slug" type="text" maxlength="120" value="<%= post.slug || '' %>" placeholder="auto-from-title" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" />
-      <p class="field-hint">Public path: <code>/blog/<span data-slug-preview><%= post.slug || '…' %></span></code> — never a UUID.</p>
+      <label for="title">Title</label>
+      <input id="title" name="title" type="text" maxlength="200" value="<%= post.title %>" />
     </div>
-    <% if (mode === 'edit') { %>
-    <div class="field field-check">
-      <label>
-        <input type="checkbox" name="updateSlug" value="1" />
-        Regenerate slug from title
-      </label>
+
+    <div class="field">
+      <label for="workTitle">Anime / manga / work</label>
+      <input
+        id="workTitle"
+        name="workTitle"
+        type="text"
+        maxlength="200"
+        value="<%= post.workTitle || '' %>"
+        placeholder="e.g. Mushoku Tensei, Oshi no Ko, Attack on Titan"
+      />
+      <p class="field-hint">Series name on cards (next to Read).</p>
     </div>
-    <% } %>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="slug">Slug <span class="muted">(public URL)</span></label>
+        <input id="slug" name="slug" type="text" maxlength="120" value="<%= post.slug || '' %>" placeholder="auto-from-title" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" />
+        <p class="field-hint"><code>/blog/<span data-slug-preview><%= post.slug || '…' %></span></code></p>
+      </div>
+      <% if (mode === 'edit') { %>
+      <div class="field field-check">
+        <label>
+          <input type="checkbox" name="updateSlug" value="1" />
+          Regenerate slug from title
+        </label>
+      </div>
+      <% } %>
+    </div>
+
+    <div class="field">
+      <label for="excerpt">Excerpt</label>
+      <textarea id="excerpt" name="excerpt" rows="2" maxlength="500"><%= post.excerpt || '' %></textarea>
+      <p class="field-hint">Card teaser (~150 chars shown). Don’t copy the first body paragraph — preview will hide duplicates.</p>
+    </div>
+
+    <div class="field">
+      <label for="bodyMd">Body (Markdown)</label>
+      <textarea id="bodyMd" name="bodyMd" rows="20" class="mono post-editor__body"><%= post.bodyMd || '' %></textarea>
+    </div>
+
+    <div class="media-embed-panel card" data-media-embed>
+      <div class="media-embed-header">
+        <h2 class="section-title" style="margin:0">Media</h2>
+        <button type="button" class="btn btn-primary btn-sm" data-media-open>Insert media…</button>
+        <button
+          type="submit"
+          class="btn btn-ghost btn-sm"
+          formaction="<%= paths.admin.postDraft() %>"
+          formmethod="post"
+          formnovalidate
+          title="Saves draft, opens library, returns here after upload"
+        >Upload / library</button>
+      </div>
+      <p class="field-hint">
+        Search and pick media in the modal, or open the full library to upload (multi-file, 30MB total).
+      </p>
+    </div>
+
+    <div class="field">
+      <label for="coverImage">Share / cover image URL</label>
+      <input
+        id="coverImage"
+        name="coverImage"
+        type="text"
+        maxlength="500"
+        value="<%= post.coverImage || '' %>"
+        placeholder="/uploads/images/….webp or https://…"
+        data-cover-image
+      />
+      <p class="field-hint">
+        Open Graph image when this post is shared. Leave blank to use the first body image, then the site default.
+        Use <button type="button" class="linkish" data-cover-from-media>Insert media…</button> and copy a path, or paste after upload.
+      </p>
+    </div>
   </div>
 
-  <div class="field">
-    <label for="excerpt">Excerpt</label>
-    <textarea id="excerpt" name="excerpt" rows="2" maxlength="500"><%= post.excerpt || '' %></textarea>
-  </div>
+  <aside class="post-editor__side">
+    <div class="post-editor__side-inner card">
+      <div class="field">
+        <span class="label-text">Status</span>
+        <div class="radio-row">
+          <label><input type="radio" name="status" value="draft" <%= (post.status || 'draft') === 'draft' ? 'checked' : '' %> /> Draft</label>
+          <label><input type="radio" name="status" value="published" <%= post.status === 'published' ? 'checked' : '' %> /> Published</label>
+        </div>
+      </div>
 
-  <div class="field">
-    <label for="bodyMd">Body (Markdown)</label>
-    <textarea id="bodyMd" name="bodyMd" rows="16" class="mono"><%= post.bodyMd || '' %></textarea>
-  </div>
+      <fieldset class="field">
+        <legend>Categories</legend>
+        <div class="check-grid">
+          <% categories.forEach(function (cat) { %>
+          <label>
+            <input type="checkbox" name="categoryIds" value="<%= cat.id %>" <%= selectedCats.indexOf(cat.id) !== -1 ? 'checked' : '' %> />
+            <%= cat.name %>
+          </label>
+          <% }) %>
+        </div>
+        <label class="field-sub" for="newCategories">Add (comma-separated)</label>
+        <input id="newCategories" name="newCategories" type="text" placeholder="e.g. Spoilers" value="<%= newCatsVal %>" />
+      </fieldset>
 
-  <div class="media-embed-panel card" data-media-embed>
-    <div class="media-embed-header">
-      <h2 class="section-title" style="margin:0">Insert media</h2>
-      <button
-        type="submit"
-        class="btn btn-ghost btn-sm"
-        formaction="<%= paths.admin.postDraft() %>"
-        formmethod="post"
-        formnovalidate
-        title="Saves your post draft, then opens the media library. After upload you return here."
-      >Upload / open library</button>
-      <button type="button" class="btn btn-ghost btn-sm" data-media-refresh>Refresh list</button>
+      <fieldset class="field">
+        <legend>Tags</legend>
+        <div class="check-grid">
+          <% tags.forEach(function (tag) { %>
+          <label>
+            <input type="checkbox" name="tagIds" value="<%= tag.id %>" <%= selectedTags.indexOf(tag.id) !== -1 ? 'checked' : '' %> />
+            #<%= tag.name %>
+          </label>
+          <% }) %>
+        </div>
+        <label class="field-sub" for="newTags">Add (comma-separated)</label>
+        <input id="newTags" name="newTags" type="text" placeholder="e.g. isekai" value="<%= newTagsVal %>" />
+      </fieldset>
+
+      <div class="admin-actions post-editor__actions">
+        <button type="submit" class="btn btn-primary">Save</button>
+        <button
+          type="submit"
+          class="btn btn-ghost"
+          formaction="<%= paths.admin.postPreviewForm() %>"
+          formmethod="post"
+          formnovalidate
+        >Preview</button>
+        <a class="btn btn-ghost" href="<%= paths.admin.posts() %>">Cancel</a>
+      </div>
     </div>
-    <p class="field-hint">
-      <strong>Upload / open library</strong> keeps this post as a temporary draft, then returns you here after upload.
-      Or pick a file below to insert Markdown into the body.
-    </p>
-    <div class="media-embed-grid" data-media-list>
-      <p class="muted">Loading…</p>
-    </div>
-  </div>
-
-  <div class="field">
-    <span class="label-text">Status</span>
-    <div class="radio-row">
-      <label><input type="radio" name="status" value="draft" <%= (post.status || 'draft') === 'draft' ? 'checked' : '' %> /> Draft</label>
-      <label><input type="radio" name="status" value="published" <%= post.status === 'published' ? 'checked' : '' %> /> Published</label>
-    </div>
-  </div>
-
-  <fieldset class="field">
-    <legend>Categories</legend>
-    <div class="check-grid">
-      <% categories.forEach(function (cat) { %>
-      <label>
-        <input type="checkbox" name="categoryIds" value="<%= cat.id %>" <%= selectedCats.indexOf(cat.id) !== -1 ? 'checked' : '' %> />
-        <%= cat.name %> <span class="muted">/<%= cat.slug %></span>
-      </label>
-      <% }) %>
-    </div>
-    <label class="field-sub" for="newCategories">Add categories (comma-separated)</label>
-    <input id="newCategories" name="newCategories" type="text" placeholder="e.g. Spoilers, OVA" value="<%= newCatsVal %>" />
-  </fieldset>
-
-  <fieldset class="field">
-    <legend>Tags</legend>
-    <div class="check-grid">
-      <% tags.forEach(function (tag) { %>
-      <label>
-        <input type="checkbox" name="tagIds" value="<%= tag.id %>" <%= selectedTags.indexOf(tag.id) !== -1 ? 'checked' : '' %> />
-        #<%= tag.name %>
-      </label>
-      <% }) %>
-    </div>
-    <label class="field-sub" for="newTags">Add tags (comma-separated)</label>
-    <input id="newTags" name="newTags" type="text" placeholder="e.g. isekai, 90s" value="<%= newTagsVal %>" />
-  </fieldset>
-
-  <div class="admin-actions">
-    <button type="submit" class="btn btn-primary">Save</button>
-    <button
-      type="submit"
-      class="btn btn-ghost"
-      formaction="<%= paths.admin.postPreviewForm() %>"
-      formmethod="post"
-      formnovalidate
-    >Preview</button>
-    <a class="btn btn-ghost" href="<%= paths.admin.posts() %>">Cancel</a>
-  </div>
+  </aside>
 </form>
 
 <% if (mode === 'edit') { %>
@@ -159,5 +179,33 @@
   <button type="submit" class="btn btn-danger">Delete post</button>
 </form>
 <% } %>
+
+<!-- Media picker modal (outside form to avoid nested buttons issues for type=button) -->
+<div class="media-modal" data-media-modal hidden>
+  <div class="media-modal__backdrop" data-media-close></div>
+  <div class="media-modal__dialog card" role="dialog" aria-modal="true" aria-labelledby="media-modal-title">
+    <header class="media-modal__header">
+      <h2 id="media-modal-title" class="section-title" style="margin:0">Insert media</h2>
+      <button type="button" class="btn btn-ghost btn-sm" data-media-close aria-label="Close">✕</button>
+    </header>
+    <div class="media-modal__toolbar">
+      <input type="search" class="media-modal__search" data-media-q placeholder="Search filename or alt…" />
+      <select data-media-type aria-label="Type">
+        <option value="">All types</option>
+        <option value="image">Images</option>
+        <option value="gif">GIFs</option>
+        <option value="video">Videos</option>
+      </select>
+    </div>
+    <div class="media-modal__grid" data-media-list>
+      <p class="muted">Loading…</p>
+    </div>
+    <footer class="media-modal__footer">
+      <button type="button" class="btn btn-ghost btn-sm" data-media-prev disabled>← Prev</button>
+      <span class="muted" data-media-page-label></span>
+      <button type="button" class="btn btn-ghost btn-sm" data-media-next disabled>Next →</button>
+    </footer>
+  </div>
+</div>
 
 <%- include('layout-bottom') %>
