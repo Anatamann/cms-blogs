@@ -15,6 +15,7 @@ const {
   truncateText,
   excerptDuplicatesBody,
   firstMarkdownImage,
+  parseBackdropImages,
 } = require('../utils/markdown');
 const { formatDate, escapeXml, absoluteUrl } = require('../utils/format');
 const { ensureVisitorKey } = require('../utils/visitor');
@@ -83,10 +84,20 @@ function resolveOgImage(post) {
 function presentPost(post) {
   if (!post) return null;
   const card = presentPostCard(post);
+  const cover = String(post.coverImage || '').trim();
+  const fromField = parseBackdropImages(post.backdropImages);
+  /** Backdrop stills only (not body images). Cover first if not already listed. */
+  const backdropImages = [];
+  if (cover) backdropImages.push(cover);
+  for (const src of fromField) {
+    if (src && !backdropImages.includes(src)) backdropImages.push(src);
+  }
   return {
     ...card,
     bodyHtml: renderMarkdown(post.bodyMd),
     viewCount: Number(post.viewCount) || 0,
+    backdropImages,
+    hasScrollBackdrop: backdropImages.length > 0,
   };
 }
 
@@ -235,6 +246,7 @@ function blogPost(req, res, next) {
   const reactions = reactionsService.getForPost(post.id, visitorKey);
 
   const ogImage = resolveOgImage(presented);
+  const pageScripts = presented.hasScrollBackdrop ? ['/js/post-scroll.js'] : [];
   res.render('pages/post', {
     title: presented.title,
     metaDescription: presented.excerpt,
@@ -246,6 +258,7 @@ function blogPost(req, res, next) {
     commentForm: req.session?.commentForm || { name: '', email: '', body: '' },
     canonicalUrl: absoluteUrl(config.appUrl, paths.post(presented.slug)),
     ogImage,
+    pageScripts,
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'Article',

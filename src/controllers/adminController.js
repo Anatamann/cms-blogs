@@ -79,10 +79,27 @@ function parsePostBody(req) {
   const excerpt = String(req.body.excerpt || '').trim();
   const bodyMd = String(req.body.bodyMd || '');
   const coverImage = String(req.body.coverImage || '').trim().slice(0, 500);
+  // Multi cover/backdrop stills (ordered). Prefer backdropImages[] array from form.
+  let backdropImages = req.body.backdropImages;
+  if (Array.isArray(backdropImages)) {
+    backdropImages = backdropImages.map((s) => String(s || '').trim()).filter(Boolean);
+  } else if (typeof backdropImages === 'string' && backdropImages.trim()) {
+    try {
+      const parsed = JSON.parse(backdropImages);
+      backdropImages = Array.isArray(parsed) ? parsed : [];
+    } catch {
+      backdropImages = backdropImages
+        .split(/[\n,]+/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+    }
+  } else {
+    backdropImages = [];
+  }
   const status = req.body.status === 'published' ? 'published' : 'draft';
   const updateSlug = req.body.updateSlug === '1' || req.body.updateSlug === 'on';
 
-  return { title, slug, workTitle, excerpt, bodyMd, coverImage, status, updateSlug };
+  return { title, slug, workTitle, excerpt, bodyMd, coverImage, backdropImages, status, updateSlug };
 }
 
 function loginForm(req, res) {
@@ -407,6 +424,7 @@ function postNewGet(req, res) {
         excerpt: draft.excerpt || '',
         bodyMd: draft.bodyMd || '',
         coverImage: draft.coverImage || '',
+        backdropImages: draft.backdropImages || [],
         status: draft.status || 'draft',
         categories: [],
         tags: [],
@@ -418,6 +436,7 @@ function postNewGet(req, res) {
         excerpt: '',
         bodyMd: '',
         coverImage: '',
+        backdropImages: [],
         status: 'draft',
         categories: [],
         tags: [],
@@ -465,6 +484,7 @@ async function postCreate(req, res) {
       excerpt: data.excerpt,
       bodyMd: data.bodyMd,
       coverImage: data.coverImage,
+      backdropImages: data.backdropImages,
       status: data.status,
       authorId: req.session.user.id,
       categoryIds,
@@ -498,6 +518,7 @@ function postEditGet(req, res, next) {
   const draft = takeFormDraft(req, 'edit', id);
   if (draft) clearFormDraft(req);
 
+  const { parseBackdropImages } = require('../utils/markdown');
   const formPost = draft
     ? {
         ...post,
@@ -507,9 +528,16 @@ function postEditGet(req, res, next) {
         excerpt: draft.excerpt,
         bodyMd: draft.bodyMd,
         coverImage: draft.coverImage != null ? draft.coverImage : post.coverImage,
+        backdropImages:
+          draft.backdropImages != null
+            ? draft.backdropImages
+            : parseBackdropImages(post.backdropImages),
         status: draft.status,
       }
-    : post;
+    : {
+        ...post,
+        backdropImages: parseBackdropImages(post.backdropImages),
+      };
 
   res.render('admin/post-form', {
     title: `Edit: ${formPost.title}`,
@@ -557,6 +585,7 @@ async function postUpdate(req, res, next) {
       excerpt: data.excerpt,
       bodyMd: data.bodyMd,
       coverImage: data.coverImage,
+      backdropImages: data.backdropImages,
       status: data.status,
       categoryIds,
       tagIds,
@@ -617,6 +646,7 @@ function saveFormDraftFromRequest(req) {
     excerpt: data.excerpt,
     bodyMd: data.bodyMd,
     coverImage: data.coverImage,
+    backdropImages: data.backdropImages,
     status: data.status,
     updateSlug: data.updateSlug,
     categoryIds,

@@ -103,7 +103,7 @@
     </div>
 
     <div class="field">
-      <label for="coverImage">Share / cover image URL</label>
+      <label for="coverImage">Share / cover image (OG)</label>
       <input
         id="coverImage"
         name="coverImage"
@@ -114,9 +114,32 @@
         data-cover-image
       />
       <p class="field-hint">
-        Open Graph image when this post is shared. Leave blank to use the first body image, then the site default.
-        Use <button type="button" class="linkish" data-cover-from-media>Insert media…</button> and copy a path, or paste after upload.
+        Link previews + first background still if set.
+        <button type="button" class="linkish" data-cover-from-media>Pick from media…</button>
       </p>
+    </div>
+
+    <div class="field" data-backdrop-field>
+      <label>Background stills (scroll covers)</label>
+      <p class="field-hint">
+        Ambient full-page background only. <strong>Body images stay visible</strong> in the article.
+        With 2 stills, the second appears after ~50% of the article scroll; with N stills, equal bands.
+      </p>
+      <ul class="backdrop-list" data-backdrop-list>
+        <%
+          var bd = Array.isArray(post.backdropImages) ? post.backdropImages : [];
+          bd.forEach(function (url, i) {
+        %>
+        <li class="backdrop-list__item">
+          <input type="text" name="backdropImages" value="<%= url %>" maxlength="500" />
+          <button type="button" class="btn btn-ghost btn-sm" data-backdrop-remove>Remove</button>
+        </li>
+        <% }) %>
+      </ul>
+      <div class="admin-actions" style="margin-top:0.5rem">
+        <button type="button" class="btn btn-ghost btn-sm" data-backdrop-add-media>Add still from media…</button>
+        <button type="button" class="btn btn-ghost btn-sm" data-backdrop-add-empty>Add URL row</button>
+      </div>
     </div>
   </div>
 

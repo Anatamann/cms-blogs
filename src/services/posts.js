@@ -280,12 +280,35 @@ function incrementViewCount(id) {
  *   excerpt?: string,
  *   bodyMd?: string,
  *   coverImage?: string,
+ *   backdropImages?: string[]|string,
  *   status?: 'draft'|'published',
  *   authorId: string,
  *   categoryIds?: string[],
  *   tagIds?: string[],
  * }} input
  */
+function normalizeBackdropImages(raw) {
+  if (Array.isArray(raw)) {
+    return JSON.stringify(raw.map((s) => String(s || '').trim()).filter(Boolean).slice(0, 12));
+  }
+  const s = String(raw || '').trim();
+  if (!s) return '[]';
+  try {
+    const parsed = JSON.parse(s);
+    if (Array.isArray(parsed)) {
+      return JSON.stringify(parsed.map((x) => String(x || '').trim()).filter(Boolean).slice(0, 12));
+    }
+  } catch {
+    /* fall through */
+  }
+  const parts = s
+    .split(/[\n,]+/)
+    .map((x) => x.trim())
+    .filter(Boolean)
+    .slice(0, 12);
+  return JSON.stringify(parts);
+}
+
 async function createPost(input) {
   const db = getDb();
   const id = generateId();
@@ -312,6 +335,7 @@ async function createPost(input) {
       excerpt: input.excerpt || '',
       bodyMd: input.bodyMd || '',
       coverImage: String(input.coverImage || '').trim().slice(0, 500),
+      backdropImages: normalizeBackdropImages(input.backdropImages),
       status,
       authorId: input.authorId,
       viewCount: 0,
@@ -334,6 +358,7 @@ async function createPost(input) {
  *   excerpt?: string,
  *   bodyMd?: string,
  *   coverImage?: string,
+ *   backdropImages?: string[]|string,
  *   status?: 'draft'|'published',
  *   categoryIds?: string[],
  *   tagIds?: string[],
@@ -358,6 +383,9 @@ async function updatePost(id, input) {
   if (input.bodyMd != null) patch.bodyMd = input.bodyMd;
   if (input.coverImage != null) {
     patch.coverImage = String(input.coverImage).trim().slice(0, 500);
+  }
+  if (input.backdropImages != null) {
+    patch.backdropImages = normalizeBackdropImages(input.backdropImages);
   }
 
   if (input.updateSlug && (input.slug || input.title)) {

@@ -57,6 +57,13 @@
       "when": 1721400000007,
       "tag": "0007_post_cover_image",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1721400000008,
+      "tag": "0008_post_backdrop_images",
+      "breakpoints": true
     }
   ]
 }

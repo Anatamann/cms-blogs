@@ -42,6 +42,8 @@ const posts = sqliteTable(
     bodyMd: text('body_md').notNull().default(''),
     /** Public path or absolute URL for Open Graph / share image */
     coverImage: text('cover_image').notNull().default(''),
+    /** JSON array of backdrop still URLs for scroll bg (article progress bands) */
+    backdropImages: text('backdrop_images').notNull().default('[]'),
     status: text('status').notNull().default('draft'), // draft | published
     authorId: text('author_id')
       .notNull()

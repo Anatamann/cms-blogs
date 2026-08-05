@@ -202,6 +202,21 @@ After upload, paths look like `/uploads/images/<uuid>.webp`.
 - Prefer the path from **Insert media** or **Copy MD** so you do not mistype the UUID filename.
 - Leave a blank line before and after the image so it sits in its own block.
 
+### Cover / background stills vs body images
+
+On the **public** post page:
+
+| Source | Behavior |
+|--------|----------|
+| **Share / cover image** | Open Graph preview; also first ambient background still |
+| **Background stills** (scroll covers) | Full-viewport stills only. With **2** images, the second appears after ~**50%** of the article scroll; with **N** images, equal bands (`1/N`, `2/N`, …) |
+| **Body images / GIFs** | Stay **fully visible** in the article (clear figures for the story) |
+| **Video** | In-flow with controls — never the full-page background |
+
+Set covers under the post editor fields (not by placing them only in the body). Body media is for what readers must see clearly while reading.
+
+Readers with **reduced motion** get a static first cover; body images still display normally.
+
 **Example in context:**
 
 ```markdown

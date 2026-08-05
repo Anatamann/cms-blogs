@@ -49,13 +49,57 @@ const SANITIZE_OPTIONS = {
 };
 
 /**
- * Convert Markdown to sanitized HTML for public post bodies.
+ * Convert Markdown to sanitized HTML for post bodies.
+ * Body images stay normal in-flow; cover/backdrop stills are separate.
  * @param {string} markdown
  * @returns {string}
  */
 function renderMarkdown(markdown) {
   const raw = marked.parse(markdown || '', { async: false });
   return sanitizeHtml(String(raw), SANITIZE_OPTIONS);
+}
+
+/**
+ * Parse backdrop_images JSON from DB into a clean URL list.
+ * @param {string|string[]|null|undefined} raw
+ * @returns {string[]}
+ */
+function parseBackdropImages(raw) {
+  if (Array.isArray(raw)) {
+    return raw.map((s) => String(s || '').trim()).filter(Boolean);
+  }
+  const s = String(raw || '').trim();
+  if (!s) return [];
+  try {
+    const parsed = JSON.parse(s);
+    if (Array.isArray(parsed)) {
+      return parsed.map((x) => String(x || '').trim()).filter(Boolean);
+    }
+  } catch {
+    // comma-separated fallback
+    return s
+      .split(/[\n,]+/)
+      .map((x) => x.trim())
+      .filter(Boolean);
+  }
+  return [];
+}
+
+/**
+ * Ordered image URLs from markdown (for scroll backdrop / preload).
+ * @param {string} markdown
+ * @returns {string[]}
+ */
+function listMarkdownImages(markdown) {
+  const md = String(markdown || '');
+  const out = [];
+  const re = /!\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
+  let m;
+  while ((m = re.exec(md))) {
+    const src = (m[1] || '').trim();
+    if (src) out.push(src);
+  }
+  return out;
 }
 
 /**
@@ -137,4 +181,6 @@ module.exports = {
   truncateText,
   excerptDuplicatesBody,
   firstMarkdownImage,
+  listMarkdownImages,
+  parseBackdropImages,
 };

@@ -1170,6 +1170,109 @@ a.post-work-title:hover {
   border-bottom: 1px solid var(--border);
 }
 
+/* —— Post scroll backdrop (still images) —— */
+body.has-post-scroll {
+  background-attachment: scroll;
+}
+
+body.has-post-scroll .site-main {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+body.has-post-scroll .site-footer {
+  position: relative;
+  z-index: 2;
+  background: rgba(10, 10, 15, 0.94);
+  backdrop-filter: blur(8px);
+}
+
+.post-scroll {
+  --header-offset: 4.25rem;
+  position: relative;
+  min-height: 0;
+}
+
+.post-scroll__stage {
+  position: fixed;
+  top: var(--header-offset);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background: #050508;
+}
+
+.post-scroll__bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  opacity: 0;
+  transition: opacity 0.55s ease;
+  will-change: opacity;
+}
+
+.post-scroll__bg.is-active {
+  opacity: 1;
+}
+
+.post-scroll__veil {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 30%, transparent 0%, rgba(5, 5, 10, 0.45) 55%, rgba(5, 5, 10, 0.75) 100%),
+    linear-gradient(180deg, rgba(10, 10, 15, 0.35) 0%, rgba(10, 10, 15, 0.55) 100%);
+  pointer-events: none;
+}
+
+.post-scroll__content {
+  position: relative;
+  z-index: 1;
+  padding-top: 1.25rem;
+  padding-bottom: 2rem;
+}
+
+/* Glass panels over cover backdrop — body images/videos stay fully visible */
+.post-page--scroll .post-page__header.card,
+.post-page--scroll .prose--over-backdrop,
+.post-page--scroll .reactions.card,
+.post-page--scroll .comments.card {
+  background: rgba(12, 12, 20, 0.82);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 255, 255, 0.12);
+  border-radius: var(--radius);
+  padding: 1rem 1.15rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+
+.post-page--scroll .prose--over-backdrop {
+  max-width: 42rem;
+}
+
+.post-page--scroll .prose--over-backdrop img,
+.post-page--scroll .prose--over-backdrop video {
+  max-width: 100%;
+  height: auto;
+  position: relative;
+  opacity: 1;
+}
+
+/* Reduced motion: keep first cover static (stage still ok) or hide stage */
+.post-scroll--static .post-scroll__bg {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .post-scroll__bg {
+    transition: none;
+  }
+}
+
 .post-page__tags {
   margin-top: 1.5rem;
   display: flex;
