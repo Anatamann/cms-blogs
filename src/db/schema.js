@@ -235,6 +235,36 @@ const analyticsEvents = sqliteTable(
   })
 );
 
+/**
+ * Per-post managed hyperlink rules — applied at render time to body HTML.
+ * body_md stays clean; Title / Excerpt / H1 are never auto-linked.
+ */
+const postHyperlinks = sqliteTable(
+  'post_hyperlinks',
+  {
+    id: text('id').primaryKey().notNull(),
+    postId: text('post_id')
+      .notNull()
+      .references(() => posts.id, { onDelete: 'cascade' }),
+    word: text('word').notNull(),
+    url: text('url').notNull(),
+    /** NULL = link all eligible occurrences; otherwise first N. */
+    maxOccurrences: integer('max_occurrences'),
+    /** Last computed count of auto-linked matches for this rule. */
+    linkedCount: integer('linked_count').notNull().default(0),
+    createdAt: text('created_at')
+      .notNull()
+      .default(sql`(datetime('now'))`),
+    updatedAt: text('updated_at')
+      .notNull()
+      .default(sql`(datetime('now'))`),
+  },
+  (t) => ({
+    postWordUq: uniqueIndex('post_hyperlinks_post_word_uq').on(t.postId, t.word),
+    postIdx: index('post_hyperlinks_post_id_idx').on(t.postId),
+  })
+);
+
 module.exports = {
   users,
   posts,
@@ -247,4 +277,5 @@ module.exports = {
   comments,
   reactions,
   analyticsEvents,
+  postHyperlinks,
 };

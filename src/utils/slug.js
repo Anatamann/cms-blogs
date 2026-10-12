@@ -134,6 +134,10 @@ const paths = {
     postPreviewForm: () => '/mantri/posts/preview',
     /** Save editor draft to session, then continue (e.g. media library). */
     postDraft: () => '/mantri/posts/draft',
+    /** Managed word → URL hyperlink rules (edit mode only). */
+    postHyperlinks: (id) => `/mantri/posts/${id}/hyperlinks`,
+    postHyperlinkEdit: (id, ruleId) => `/mantri/posts/${id}/hyperlinks/${ruleId}/edit`,
+    postHyperlinkDelete: (id, ruleId) => `/mantri/posts/${id}/hyperlinks/${ruleId}/delete`,
     media: () => '/mantri/media',
     mediaUpload: () => '/mantri/media/upload',
     mediaDelete: (id) => `/mantri/media/${id}/delete`,

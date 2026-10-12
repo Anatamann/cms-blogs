@@ -181,6 +181,104 @@
         <input id="newTags" name="newTags" type="text" placeholder="e.g. isekai" value="<%= newTagsVal %>" />
       </fieldset>
 
+      <% if (mode === 'edit') {
+        var hyperlinkRules = typeof hyperlinks !== 'undefined' && hyperlinks ? hyperlinks : [];
+      %>
+      <div class="hyperlinks-panel" data-hyperlinks-panel>
+        <button
+          type="button"
+          class="hyperlinks-panel__toggle"
+          data-hyperlinks-toggle
+          aria-expanded="<%= hyperlinkRules.length ? 'true' : 'false' %>"
+          aria-controls="hyperlinks-panel-body"
+        >
+          <span class="label-text">Hyperlinks</span>
+          <span class="hyperlinks-panel__chevron" aria-hidden="true"><%= hyperlinkRules.length ? '▾' : '▸' %></span>
+        </button>
+        <div
+          id="hyperlinks-panel-body"
+          class="hyperlinks-panel__body<%= hyperlinkRules.length ? ' is-open' : '' %>"
+          data-hyperlinks-body
+          <%= hyperlinkRules.length ? '' : 'hidden' %>
+        >
+          <p class="field-hint">
+            Auto-link words in the body (not title, excerpt, or Heading 1). Manual Markdown links stay as written.
+          </p>
+
+          <% if (hyperlinkRules.length) { %>
+          <ul class="hyperlinks-list">
+            <% hyperlinkRules.forEach(function (rule) {
+              var capLabel = rule.maxOccurrences == null ? 'All' : ('First ' + rule.maxOccurrences);
+              var editFormId = 'hl-edit-' + rule.id;
+              var delFormId = 'hl-del-' + rule.id;
+            %>
+            <li class="hyperlinks-list__item">
+              <div class="hyperlinks-list__meta">
+                <code class="hyperlinks-list__word"><%= rule.word %></code>
+                <span class="muted">→</span>
+                <a class="hyperlinks-list__url" href="<%= rule.url %>" target="_blank" rel="noopener noreferrer" title="<%= rule.url %>"><%= rule.url %></a>
+              </div>
+              <div class="hyperlinks-list__stats muted">
+                <%= capLabel %> · linked <%= rule.linkedCount || 0 %>
+              </div>
+              <details class="hyperlinks-list__edit">
+                <summary class="linkish">Edit</summary>
+                <div class="hyperlinks-form">
+                  <input type="hidden" form="<%= editFormId %>" name="_csrf" value="<%= csrfToken %>" />
+                  <label class="field-sub" for="hl-word-<%= rule.id %>">Word</label>
+                  <input form="<%= editFormId %>" id="hl-word-<%= rule.id %>" name="word" type="text" maxlength="120" required value="<%= rule.word %>" />
+                  <label class="field-sub" for="hl-url-<%= rule.id %>">URL</label>
+                  <input form="<%= editFormId %>" id="hl-url-<%= rule.id %>" name="url" type="text" maxlength="500" required value="<%= rule.url %>" placeholder="https://… or /path" />
+                  <label class="field-sub" for="hl-max-<%= rule.id %>">Occurrences</label>
+                  <select form="<%= editFormId %>" id="hl-max-<%= rule.id %>" name="maxOccurrences">
+                    <option value="all" <%= rule.maxOccurrences == null ? 'selected' : '' %>>All</option>
+                    <% for (var n = 1; n <= 50; n++) { %>
+                    <option value="<%= n %>" <%= rule.maxOccurrences === n ? 'selected' : '' %>><%= n %></option>
+                    <% } %>
+                  </select>
+                  <div class="admin-actions" style="margin-top:0.5rem">
+                    <button form="<%= editFormId %>" type="submit" class="btn btn-primary btn-sm">Update</button>
+                  </div>
+                </div>
+              </details>
+              <div class="hyperlinks-list__remove">
+                <input type="hidden" form="<%= delFormId %>" name="_csrf" value="<%= csrfToken %>" />
+                <button
+                  form="<%= delFormId %>"
+                  type="submit"
+                  class="btn btn-ghost btn-sm"
+                  data-hyperlink-word="<%= rule.word %>"
+                  onclick="return confirm('Remove all auto-links for “' + (this.getAttribute('data-hyperlink-word') || 'this word') + '”?');"
+                >Remove</button>
+              </div>
+            </li>
+            <% }) %>
+          </ul>
+          <% } else { %>
+          <p class="muted" style="margin:0">No managed words yet.</p>
+          <% } %>
+
+          <div class="hyperlinks-form hyperlinks-form--add">
+            <input type="hidden" form="hl-add-form" name="_csrf" value="<%= csrfToken %>" />
+            <label class="field-sub" for="hl-word-new">Word</label>
+            <input form="hl-add-form" id="hl-word-new" name="word" type="text" maxlength="120" required placeholder="Exact word or phrase" />
+            <label class="field-sub" for="hl-url-new">URL</label>
+            <input form="hl-add-form" id="hl-url-new" name="url" type="text" maxlength="500" required placeholder="https://… or /path" />
+            <label class="field-sub" for="hl-max-new">Occurrences</label>
+            <select form="hl-add-form" id="hl-max-new" name="maxOccurrences">
+              <option value="all" selected>All</option>
+              <% for (var m = 1; m <= 50; m++) { %>
+              <option value="<%= m %>"><%= m %></option>
+              <% } %>
+            </select>
+            <button form="hl-add-form" type="submit" class="btn btn-ghost btn-sm" style="margin-top:0.5rem">Add hyperlink</button>
+          </div>
+        </div>
+      </div>
+      <% } else { %>
+      <p class="field-hint muted">Save the post once to manage hyperlinks.</p>
+      <% } %>
+
       <div class="admin-actions post-editor__actions">
         <button type="submit" class="btn btn-primary">Save</button>
         <button
@@ -196,7 +294,15 @@
   </aside>
 </form>
 
-<% if (mode === 'edit') { %>
+<% if (mode === 'edit') {
+  var hyperlinkRulesOut = typeof hyperlinks !== 'undefined' && hyperlinks ? hyperlinks : [];
+%>
+<!-- Hyperlink CRUD forms live outside the post form (no nested forms). -->
+<form id="hl-add-form" method="post" action="<%= paths.admin.postHyperlinks(post.id) %>" hidden></form>
+<% hyperlinkRulesOut.forEach(function (rule) { %>
+<form id="hl-edit-<%= rule.id %>" method="post" action="<%= paths.admin.postHyperlinkEdit(post.id, rule.id) %>" hidden></form>
+<form id="hl-del-<%= rule.id %>" method="post" action="<%= paths.admin.postHyperlinkDelete(post.id, rule.id) %>" hidden></form>
+<% }) %>
 <form method="post" action="<%= paths.admin.postDelete(post.id) %>" class="admin-danger" onsubmit="return confirm('Delete this post permanently?');">
   <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
   <button type="submit" class="btn btn-danger">Delete post</button>

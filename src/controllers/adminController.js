@@ -8,10 +8,10 @@ const tagsService = require('../services/tags');
 const settingsService = require('../services/settings');
 const commentsService = require('../services/comments');
 const analyticsService = require('../services/analytics');
+const hyperlinksService = require('../services/hyperlinks');
 const { paths, slugify, isValidSlug } = require('../utils/slug');
 const { isValidId } = require('../utils/uuid');
 const {
-  renderMarkdown,
   plainExcerpt,
   excerptDuplicatesBody,
 } = require('../utils/markdown');
@@ -545,6 +545,8 @@ function postEditGet(req, res, next) {
     post: formPost,
     categories: categoriesService.listCategories(),
     tags: tagsService.listTags(),
+    hyperlinks: hyperlinksService.listByPost(id),
+    editingHyperlinkId: null,
     error: null,
     selectedCategoryIds: draft?.categoryIds || (post.categories || []).map((c) => c.id),
     selectedTagIds: draft?.tagIds || (post.tags || []).map((t) => t.id),
@@ -570,6 +572,8 @@ async function postUpdate(req, res, next) {
       post: { ...existing, ...data },
       categories: categoriesService.listCategories(),
       tags: tagsService.listTags(),
+      hyperlinks: hyperlinksService.listByPost(id),
+      editingHyperlinkId: null,
       error: 'Title is required.',
       selectedCategoryIds: categoryIds,
       selectedTagIds: tagIds,
@@ -594,6 +598,11 @@ async function postUpdate(req, res, next) {
     });
 
     clearFormDraft(req);
+    try {
+      hyperlinksService.recomputeCounts(id);
+    } catch {
+      // Counts are best-effort; post save already succeeded.
+    }
     req.flash('ok', `Post “${post.title}” saved.`);
     return res.redirect(paths.admin.postEdit(id));
   } catch (err) {
@@ -603,6 +612,8 @@ async function postUpdate(req, res, next) {
       post: { ...existing, ...data },
       categories: categoriesService.listCategories(),
       tags: tagsService.listTags(),
+      hyperlinks: hyperlinksService.listByPost(id),
+      editingHyperlinkId: null,
       error: err.message || 'Could not update post.',
       selectedCategoryIds: categoryIds,
       selectedTagIds: tagIds,
@@ -702,7 +713,7 @@ function postPreviewForm(req, res) {
     (mode === 'edit' && postId ? postsService.getById(postId)?.slug : null) ||
     'untitled';
 
-  const bodyHtml = renderMarkdown(data.bodyMd || '');
+  const bodyHtml = hyperlinksService.renderBodyHtml(data.bodyMd || '', postId);
   const excerpt = data.excerpt || plainExcerpt(data.bodyMd || '');
   const hideExcerpt = excerptDuplicatesBody(excerpt, data.bodyMd || '');
   const author = req.session.user
@@ -742,7 +753,7 @@ function postPreview(req, res, next) {
   const post = postsService.getById(id);
   if (!post) return next();
 
-  const bodyHtml = renderMarkdown(post.bodyMd);
+  const bodyHtml = hyperlinksService.renderBodyHtml(post.bodyMd, post.id);
   const excerpt = post.excerpt || plainExcerpt(post.bodyMd);
   const hideExcerpt = excerptDuplicatesBody(excerpt, post.bodyMd || '');
 
@@ -760,6 +771,77 @@ function postPreview(req, res, next) {
     isFormPreview: false,
     backHref: paths.admin.postEdit(post.id),
   });
+}
+
+/**
+ * POST /mantri/posts/:id/hyperlinks — create managed word link rule.
+ */
+function hyperlinkCreate(req, res, next) {
+  const { id } = req.params;
+  if (!isValidId(id)) return next();
+  const post = postsService.getById(id);
+  if (!post) return next();
+
+  try {
+    const rule = hyperlinksService.create({
+      postId: id,
+      word: req.body.word,
+      url: req.body.url,
+      maxOccurrences: req.body.maxOccurrences,
+    });
+    req.flash('ok', `Hyperlink for “${rule.word}” added (linked ${rule.linkedCount}).`);
+  } catch (err) {
+    req.flash('error', err.message || 'Could not add hyperlink.');
+  }
+  return res.redirect(paths.admin.postEdit(id));
+}
+
+/**
+ * POST /mantri/posts/:id/hyperlinks/:ruleId/edit — update rule.
+ */
+function hyperlinkUpdate(req, res, next) {
+  const { id, ruleId } = req.params;
+  if (!isValidId(id) || !isValidId(ruleId)) return next();
+  const post = postsService.getById(id);
+  if (!post) return next();
+
+  const existing = hyperlinksService.getById(ruleId);
+  if (!existing || existing.postId !== id) {
+    req.flash('error', 'Hyperlink rule not found.');
+    return res.redirect(paths.admin.postEdit(id));
+  }
+
+  try {
+    const rule = hyperlinksService.update(ruleId, {
+      word: req.body.word,
+      url: req.body.url,
+      maxOccurrences: req.body.maxOccurrences,
+    });
+    req.flash('ok', `Hyperlink for “${rule.word}” updated (linked ${rule.linkedCount}).`);
+  } catch (err) {
+    req.flash('error', err.message || 'Could not update hyperlink.');
+  }
+  return res.redirect(paths.admin.postEdit(id));
+}
+
+/**
+ * POST /mantri/posts/:id/hyperlinks/:ruleId/delete — remove rule (all auto-links for word).
+ */
+function hyperlinkDelete(req, res, next) {
+  const { id, ruleId } = req.params;
+  if (!isValidId(id) || !isValidId(ruleId)) return next();
+  const post = postsService.getById(id);
+  if (!post) return next();
+
+  const existing = hyperlinksService.getById(ruleId);
+  if (!existing || existing.postId !== id) {
+    req.flash('error', 'Hyperlink rule not found.');
+    return res.redirect(paths.admin.postEdit(id));
+  }
+
+  hyperlinksService.remove(ruleId);
+  req.flash('ok', `Removed hyperlink rule for “${existing.word}”.`);
+  return res.redirect(paths.admin.postEdit(id));
 }
 
 function settingsGet(req, res) {
@@ -949,6 +1031,9 @@ module.exports = {
   postPreview,
   postPreviewForm,
   postDraftForMedia,
+  hyperlinkCreate,
+  hyperlinkUpdate,
+  hyperlinkDelete,
   settingsGet,
   settingsPost,
   authorsList,

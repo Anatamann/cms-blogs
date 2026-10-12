@@ -315,3 +315,20 @@
     });
   }
 })();
+
+/* Post editor: collapsible managed hyperlinks panel */
+(function () {
+  const panel = document.querySelector('[data-hyperlinks-panel]');
+  if (!panel) return;
+  const toggle = panel.querySelector('[data-hyperlinks-toggle]');
+  const body = panel.querySelector('[data-hyperlinks-body]');
+  const chevron = panel.querySelector('.hyperlinks-panel__chevron');
+  if (!toggle || !body) return;
+
+  toggle.addEventListener('click', () => {
+    const open = body.classList.toggle('is-open');
+    body.hidden = !open;
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (chevron) chevron.textContent = open ? '▾' : '▸';
+  });
+})();

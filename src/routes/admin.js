@@ -57,6 +57,24 @@ router.get('/posts/:id/edit', adminController.postEditGet);
 router.post('/posts/:id/edit', writeLimiter, verifyCsrf, adminController.postUpdate);
 router.post('/posts/:id/delete', writeLimiter, verifyCsrf, adminController.postDelete);
 router.get('/posts/:id/preview', adminController.postPreview);
+router.post(
+  '/posts/:id/hyperlinks',
+  writeLimiter,
+  verifyCsrf,
+  adminController.hyperlinkCreate
+);
+router.post(
+  '/posts/:id/hyperlinks/:ruleId/edit',
+  writeLimiter,
+  verifyCsrf,
+  adminController.hyperlinkUpdate
+);
+router.post(
+  '/posts/:id/hyperlinks/:ruleId/delete',
+  writeLimiter,
+  verifyCsrf,
+  adminController.hyperlinkDelete
+);
 
 router.get('/settings', adminController.settingsGet);
 router.post('/settings', writeLimiter, verifyCsrf, adminController.settingsPost);

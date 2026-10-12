@@ -188,6 +188,16 @@ Use *italic* or **bold** sparingly. Combine ***bold italic*** only when needed.
 Read more in [our archive](/archive) or an [external review](https://example.com).
 ```
 
+### Managed hyperlinks (edit sidebar)
+
+On **Edit post**, open the **Hyperlinks** panel in the sidebar to auto-link a word or phrase across the body:
+
+1. Enter the **exact** word/phrase (case-sensitive) and a URL (`https://…` or `/path`).
+2. Choose **All** occurrences or the first **1–50**.
+3. Save the rule — links are applied when the post is rendered (Markdown stays clean).
+
+Rules never touch the **title**, **excerpt**, or **Heading 1** (`# …`). Existing manual `[text](url)` links are left alone; only unlinked matches are wrapped. **Remove** deletes the rule and drops all auto-links for that word.
+
 ## Inserting images
 
 After upload, paths look like `/uploads/images/<uuid>.webp`.

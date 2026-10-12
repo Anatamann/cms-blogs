@@ -24,7 +24,8 @@
     "test:phase4": "node scripts/phase4-check.js",
     "test:phase5": "node scripts/phase5-check.js",
     "test:phase6": "node scripts/phase6-check.js",
-    "test": "npm run test:smoke && npm run test:phase1 && npm run test:phase2 && npm run test:phase3 && npm run test:phase4 && npm run test:phase5 && npm run test:phase6"
+    "test:managed-links": "node scripts/managed-links-check.js",
+    "test": "npm run test:smoke && npm run test:phase1 && npm run test:phase2 && npm run test:phase3 && npm run test:phase4 && npm run test:phase5 && npm run test:phase6 && npm run test:managed-links"
   },
   "engines": {
     "node": ">=20"

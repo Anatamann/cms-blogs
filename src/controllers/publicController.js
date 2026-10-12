@@ -10,13 +10,13 @@ const commentsService = require('../services/comments');
 const reactionsService = require('../services/reactions');
 const { paths, isValidSlug, slugify } = require('../utils/slug');
 const {
-  renderMarkdown,
   plainExcerpt,
   truncateText,
   excerptDuplicatesBody,
   firstMarkdownImage,
   parseBackdropImages,
 } = require('../utils/markdown');
+const hyperlinksService = require('../services/hyperlinks');
 const { formatDate, escapeXml, absoluteUrl } = require('../utils/format');
 const { ensureVisitorKey } = require('../utils/visitor');
 const analyticsService = require('../services/analytics');
@@ -94,7 +94,7 @@ function presentPost(post) {
   }
   return {
     ...card,
-    bodyHtml: renderMarkdown(post.bodyMd),
+    bodyHtml: hyperlinksService.renderBodyHtml(post.bodyMd, post.id),
     viewCount: Number(post.viewCount) || 0,
     backdropImages,
     hasScrollBackdrop: backdropImages.length > 0,
