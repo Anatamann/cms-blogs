@@ -265,6 +265,67 @@ const postHyperlinks = sqliteTable(
   })
 );
 
+/**
+ * Ad creatives library — promo cards or Google AdSense units.
+ */
+const ads = sqliteTable(
+  'ads',
+  {
+    id: text('id').primaryKey().notNull(),
+    name: text('name').notNull(),
+    /** promo | google */
+    type: text('type').notNull().default('promo'),
+    /** active | paused */
+    status: text('status').notNull().default('active'),
+    title: text('title').notNull().default(''),
+    imageUrl: text('image_url').notNull().default(''),
+    linkUrl: text('link_url').notNull().default(''),
+    adsenseClient: text('adsense_client').notNull().default(''),
+    adsenseSlot: text('adsense_slot').notNull().default(''),
+    adsenseFormat: text('adsense_format').notNull().default(''),
+    createdAt: text('created_at')
+      .notNull()
+      .default(sql`(datetime('now'))`),
+    updatedAt: text('updated_at')
+      .notNull()
+      .default(sql`(datetime('now'))`),
+  },
+  (t) => ({
+    statusIdx: index('ads_status_idx').on(t.status),
+    typeIdx: index('ads_type_idx').on(t.type),
+  })
+);
+
+/**
+ * Per-post ad placements (max 3 enforced in service).
+ * mobile_slot: null | top | middle | bottom (unique per post when set).
+ */
+const postAdPlacements = sqliteTable(
+  'post_ad_placements',
+  {
+    id: text('id').primaryKey().notNull(),
+    postId: text('post_id')
+      .notNull()
+      .references(() => posts.id, { onDelete: 'cascade' }),
+    adId: text('ad_id')
+      .notNull()
+      .references(() => ads.id, { onDelete: 'cascade' }),
+    showDesktop: integer('show_desktop').notNull().default(1),
+    mobileSlot: text('mobile_slot'),
+    sortOrder: integer('sort_order').notNull().default(0),
+    createdAt: text('created_at')
+      .notNull()
+      .default(sql`(datetime('now'))`),
+    updatedAt: text('updated_at')
+      .notNull()
+      .default(sql`(datetime('now'))`),
+  },
+  (t) => ({
+    postIdx: index('post_ad_placements_post_id_idx').on(t.postId),
+    adIdx: index('post_ad_placements_ad_id_idx').on(t.adId),
+  })
+);
+
 module.exports = {
   users,
   posts,
@@ -278,4 +339,6 @@ module.exports = {
   reactions,
   analyticsEvents,
   postHyperlinks,
+  ads,
+  postAdPlacements,
 };

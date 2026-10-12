@@ -1,0 +1,72 @@
+<%- include('layout-top') %>
+
+<header class="admin-page-header admin-page-header--row">
+  <div>
+    <h1>Ads</h1>
+    <p class="lead">
+      Promo cards and Google AdSense units. Assign up to 3 per post on the edit screen.
+      <%= ads.length %> creative<%= ads.length === 1 ? '' : 's' %>.
+    </p>
+  </div>
+  <div class="admin-actions">
+    <a class="btn btn-primary" href="<%= paths.admin.adNew() %>">New ad</a>
+  </div>
+</header>
+
+<% if (!ads.length) { %>
+<p class="muted">No ads yet. Create a promo or Google unit, then attach it on a post’s edit page.</p>
+<% } else { %>
+<table class="admin-table">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Status</th>
+      <th>Posts</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% ads.forEach(function (a) { %>
+    <tr>
+      <td>
+        <strong><%= a.name %></strong>
+        <% if (a.type === 'promo' && a.title) { %>
+        <div class="muted" style="font-size:0.85rem"><%= a.title %></div>
+        <% } %>
+        <% if (a.type === 'google' && a.adsenseSlot) { %>
+        <div class="muted" style="font-size:0.85rem"><code><%= a.adsenseSlot %></code></div>
+        <% } %>
+      </td>
+      <td><span class="chip"><%= a.type === 'google' ? 'Google' : 'Promo' %></span></td>
+      <td class="muted"><%= a.status %></td>
+      <td class="muted"><%= a.usageCount || 0 %></td>
+      <td class="admin-row-actions">
+        <a href="<%= paths.admin.adEdit(a.id) %>">Edit</a>
+        ·
+        <form
+          method="post"
+          action="<%= paths.admin.adDelete(a.id) %>"
+          style="display:inline"
+          onsubmit="return confirm('Delete ad “<%= a.name %>”? It will be removed from any posts.');"
+        >
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+          <button type="submit" class="linkish-danger">Delete</button>
+        </form>
+      </td>
+    </tr>
+    <% }) %>
+  </tbody>
+</table>
+<% } %>
+
+<section class="card admin-taxonomy-help" style="margin-top:1.5rem">
+  <h2 class="section-title">How placements work</h2>
+  <ul class="muted">
+    <li>Each post can show <strong>up to 3</strong> ads.</li>
+    <li>Per assignment: show in the <strong>desktop sidebar</strong> and/or a <strong>mobile</strong> slot (top / middle / bottom).</li>
+    <li>Only one ad per mobile slot. Empty assignments show nothing.</li>
+  </ul>
+</section>
+
+<%- include('layout-bottom') %>

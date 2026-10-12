@@ -16,7 +16,16 @@
   <div class="post-scroll__content">
 <% } %>
 
-<article class="wrap post-page<%= useScroll ? ' post-page--scroll' : '' %>">
+<%
+  var pageAds = typeof adPlacements !== 'undefined' && adPlacements ? adPlacements : [];
+  var adsDesktop = pageAds.filter(function (p) { return p.showDesktop; });
+  var adsByMobile = { top: null, middle: null, bottom: null };
+  pageAds.forEach(function (p) {
+    if (p.mobileSlot && adsByMobile[p.mobileSlot] === null) adsByMobile[p.mobileSlot] = p;
+  });
+  var hasGoogleAd = pageAds.some(function (p) { return p.ad && p.ad.type === 'google'; });
+%>
+<article class="wrap post-page<%= useScroll ? ' post-page--scroll' : '' %>" data-post-ads>
   <header class="post-page__header<%= useScroll ? ' card scanlines' : '' %>">
     <% if (post.categories && post.categories.length) { %>
     <p class="post-card__cats">
@@ -40,10 +49,34 @@
     </p>
   </header>
 
+  <div class="ad-slot ad-slot--inline ad-slot--mobile-top" data-ad-anchor="top">
+    <% if (adsByMobile.top && !(adsByMobile.top.showDesktop && adsByMobile.top.ad.type === 'google')) { %>
+      <%- include('../partials/ad-unit', {
+        ad: adsByMobile.top.ad,
+        placementId: adsByMobile.top.id,
+        showDesktop: adsByMobile.top.showDesktop,
+        mobileSlot: adsByMobile.top.mobileSlot,
+        sortOrder: adsByMobile.top.sortOrder
+      }) %>
+    <% } %>
+  </div>
+
   <div class="layout-with-sidebar post-layout">
     <div class="layout-main">
       <div class="prose scanlines-soft<%= useScroll ? ' prose--over-backdrop' : '' %>">
         <%- post.bodyHtml %>
+      </div>
+
+      <div class="ad-slot ad-slot--inline ad-slot--mobile-middle" data-ad-anchor="middle">
+        <% if (adsByMobile.middle && !(adsByMobile.middle.showDesktop && adsByMobile.middle.ad.type === 'google')) { %>
+          <%- include('../partials/ad-unit', {
+            ad: adsByMobile.middle.ad,
+            placementId: adsByMobile.middle.id,
+            showDesktop: adsByMobile.middle.showDesktop,
+            mobileSlot: adsByMobile.middle.mobileSlot,
+            sortOrder: adsByMobile.middle.sortOrder
+          }) %>
+        <% } %>
       </div>
 
       <% if (post.tags && post.tags.length) { %>
@@ -139,13 +172,42 @@
       </section>
       <% } %>
 
+      <div class="ad-slot ad-slot--inline ad-slot--mobile-bottom" data-ad-anchor="bottom">
+        <% if (adsByMobile.bottom && !(adsByMobile.bottom.showDesktop && adsByMobile.bottom.ad.type === 'google')) { %>
+          <%- include('../partials/ad-unit', {
+            ad: adsByMobile.bottom.ad,
+            placementId: adsByMobile.bottom.id,
+            showDesktop: adsByMobile.bottom.showDesktop,
+            mobileSlot: adsByMobile.bottom.mobileSlot,
+            sortOrder: adsByMobile.bottom.sortOrder
+          }) %>
+        <% } %>
+      </div>
+
       <p class="section-more">
         <a class="btn btn-ghost" href="<%= paths.blog() %>">← Back to the catalog</a>
       </p>
     </div>
-    <%- include('../partials/sidebar') %>
+    <aside class="sidebar" aria-label="Sidebar">
+      <div class="ad-slot ad-slot--rail" data-ad-rail>
+        <% adsDesktop.forEach(function (p) { %>
+          <%- include('../partials/ad-unit', {
+            ad: p.ad,
+            placementId: p.id,
+            showDesktop: p.showDesktop,
+            mobileSlot: p.mobileSlot,
+            sortOrder: p.sortOrder
+          }) %>
+        <% }) %>
+      </div>
+      <%- include('../partials/sidebar-inner') %>
+    </aside>
   </div>
 </article>
+<% if (hasGoogleAd) { %>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js" crossorigin="anonymous"></script>
+<% } %>
+
 
 <% if (useScroll) { %>
   </div><!-- .post-scroll__content -->

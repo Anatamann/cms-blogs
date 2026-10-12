@@ -17,6 +17,7 @@ const {
   parseBackdropImages,
 } = require('../utils/markdown');
 const hyperlinksService = require('../services/hyperlinks');
+const adsService = require('../services/ads');
 const { formatDate, escapeXml, absoluteUrl } = require('../utils/format');
 const { ensureVisitorKey } = require('../utils/visitor');
 const analyticsService = require('../services/analytics');
@@ -244,9 +245,12 @@ function blogPost(req, res, next) {
     createdLabel: formatDate(c.createdAt),
   }));
   const reactions = reactionsService.getForPost(post.id, visitorKey);
+  const adPlacements = adsService.getResolvedPlacementsForPost(post.id);
 
   const ogImage = resolveOgImage(presented);
-  const pageScripts = presented.hasScrollBackdrop ? ['/js/post-scroll.js'] : [];
+  const pageScripts = [];
+  if (presented.hasScrollBackdrop) pageScripts.push('/js/post-scroll.js');
+  if (adPlacements.length) pageScripts.push('/js/ads.js');
   res.render('pages/post', {
     title: presented.title,
     metaDescription: presented.excerpt,
@@ -254,6 +258,7 @@ function blogPost(req, res, next) {
     related: relatedPosts(post),
     comments,
     reactions,
+    adPlacements,
     commentFlash: req.session?.commentFlash || null,
     commentForm: req.session?.commentForm || { name: '', email: '', body: '' },
     canonicalUrl: absoluteUrl(config.appUrl, paths.post(presented.slug)),

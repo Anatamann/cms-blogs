@@ -9,6 +9,7 @@ const settingsService = require('../services/settings');
 const commentsService = require('../services/comments');
 const analyticsService = require('../services/analytics');
 const hyperlinksService = require('../services/hyperlinks');
+const adsService = require('../services/ads');
 const { paths, slugify, isValidSlug } = require('../utils/slug');
 const { isValidId } = require('../utils/uuid');
 const {
@@ -547,6 +548,8 @@ function postEditGet(req, res, next) {
     tags: tagsService.listTags(),
     hyperlinks: hyperlinksService.listByPost(id),
     editingHyperlinkId: null,
+    activeAds: adsService.listActiveAds(),
+    adPlacements: adsService.listPlacementsByPost(id),
     error: null,
     selectedCategoryIds: draft?.categoryIds || (post.categories || []).map((c) => c.id),
     selectedTagIds: draft?.tagIds || (post.tags || []).map((t) => t.id),
@@ -574,6 +577,8 @@ async function postUpdate(req, res, next) {
       tags: tagsService.listTags(),
       hyperlinks: hyperlinksService.listByPost(id),
       editingHyperlinkId: null,
+      activeAds: adsService.listActiveAds(),
+      adPlacements: adsService.listPlacementsByPost(id),
       error: 'Title is required.',
       selectedCategoryIds: categoryIds,
       selectedTagIds: tagIds,
@@ -603,6 +608,12 @@ async function postUpdate(req, res, next) {
     } catch {
       // Counts are best-effort; post save already succeeded.
     }
+    try {
+      adsService.setPlacementsForPost(id, adsService.parsePlacementsFromRequest(req));
+    } catch (adErr) {
+      req.flash('error', adErr.message || 'Post saved, but ad placements failed.');
+      return res.redirect(paths.admin.postEdit(id));
+    }
     req.flash('ok', `Post “${post.title}” saved.`);
     return res.redirect(paths.admin.postEdit(id));
   } catch (err) {
@@ -614,6 +625,13 @@ async function postUpdate(req, res, next) {
       tags: tagsService.listTags(),
       hyperlinks: hyperlinksService.listByPost(id),
       editingHyperlinkId: null,
+      activeAds: adsService.listActiveAds(),
+      adPlacements: adsService.parsePlacementsFromRequest(req).map((p, i) => ({
+        adId: p.adId,
+        showDesktop: p.showDesktop ? 1 : 0,
+        mobileSlot: p.mobileSlot === 'none' ? null : p.mobileSlot,
+        sortOrder: i,
+      })),
       error: err.message || 'Could not update post.',
       selectedCategoryIds: categoryIds,
       selectedTagIds: tagIds,
@@ -1017,6 +1035,132 @@ function authorDelete(req, res, next) {
   return res.redirect(paths.admin.authors());
 }
 
+// —— Ads library ——
+
+function adsList(_req, res) {
+  res.render('admin/ads-list', {
+    title: 'Ads',
+    ads: adsService.listAdsWithUsage(),
+  });
+}
+
+function adNewGet(_req, res) {
+  res.render('admin/ad-form', {
+    title: 'New ad',
+    mode: 'create',
+    ad: {
+      name: '',
+      type: 'promo',
+      status: 'active',
+      title: '',
+      imageUrl: '',
+      linkUrl: '',
+      adsenseClient: '',
+      adsenseSlot: '',
+      adsenseFormat: '',
+    },
+    error: null,
+  });
+}
+
+function adCreate(req, res) {
+  try {
+    const ad = adsService.createAd({
+      name: req.body.name,
+      type: req.body.type,
+      status: req.body.status,
+      title: req.body.title,
+      imageUrl: req.body.imageUrl,
+      linkUrl: req.body.linkUrl,
+      adsenseClient: req.body.adsenseClient,
+      adsenseSlot: req.body.adsenseSlot,
+      adsenseFormat: req.body.adsenseFormat,
+    });
+    req.flash('ok', `Ad “${ad.name}” created.`);
+    return res.redirect(paths.admin.ads());
+  } catch (err) {
+    return res.status(err.status || 400).render('admin/ad-form', {
+      title: 'New ad',
+      mode: 'create',
+      ad: {
+        name: req.body.name || '',
+        type: req.body.type === 'google' ? 'google' : 'promo',
+        status: req.body.status === 'paused' ? 'paused' : 'active',
+        title: req.body.title || '',
+        imageUrl: req.body.imageUrl || '',
+        linkUrl: req.body.linkUrl || '',
+        adsenseClient: req.body.adsenseClient || '',
+        adsenseSlot: req.body.adsenseSlot || '',
+        adsenseFormat: req.body.adsenseFormat || '',
+      },
+      error: err.message || 'Could not create ad.',
+    });
+  }
+}
+
+function adEditGet(req, res, next) {
+  const { id } = req.params;
+  if (!isValidId(id)) return next();
+  const ad = adsService.getById(id);
+  if (!ad) return next();
+  res.render('admin/ad-form', {
+    title: `Edit: ${ad.name}`,
+    mode: 'edit',
+    ad,
+    error: null,
+  });
+}
+
+function adUpdate(req, res, next) {
+  const { id } = req.params;
+  if (!isValidId(id)) return next();
+  const existing = adsService.getById(id);
+  if (!existing) return next();
+  try {
+    const ad = adsService.updateAd(id, {
+      name: req.body.name,
+      type: req.body.type,
+      status: req.body.status,
+      title: req.body.title,
+      imageUrl: req.body.imageUrl,
+      linkUrl: req.body.linkUrl,
+      adsenseClient: req.body.adsenseClient,
+      adsenseSlot: req.body.adsenseSlot,
+      adsenseFormat: req.body.adsenseFormat,
+    });
+    req.flash('ok', `Ad “${ad.name}” saved.`);
+    return res.redirect(paths.admin.ads());
+  } catch (err) {
+    return res.status(err.status || 400).render('admin/ad-form', {
+      title: `Edit: ${existing.name}`,
+      mode: 'edit',
+      ad: {
+        ...existing,
+        name: req.body.name || '',
+        type: req.body.type === 'google' ? 'google' : 'promo',
+        status: req.body.status === 'paused' ? 'paused' : 'active',
+        title: req.body.title || '',
+        imageUrl: req.body.imageUrl || '',
+        linkUrl: req.body.linkUrl || '',
+        adsenseClient: req.body.adsenseClient || '',
+        adsenseSlot: req.body.adsenseSlot || '',
+        adsenseFormat: req.body.adsenseFormat || '',
+      },
+      error: err.message || 'Could not update ad.',
+    });
+  }
+}
+
+function adDelete(req, res, next) {
+  const { id } = req.params;
+  if (!isValidId(id)) return next();
+  const existing = adsService.getById(id);
+  if (!existing) return next();
+  adsService.removeAd(id);
+  req.flash('ok', `Ad “${existing.name}” deleted.`);
+  return res.redirect(paths.admin.ads());
+}
+
 module.exports = {
   loginForm,
   loginSubmit,
@@ -1034,6 +1178,12 @@ module.exports = {
   hyperlinkCreate,
   hyperlinkUpdate,
   hyperlinkDelete,
+  adsList,
+  adNewGet,
+  adCreate,
+  adEditGet,
+  adUpdate,
+  adDelete,
   settingsGet,
   settingsPost,
   authorsList,

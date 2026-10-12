@@ -1,0 +1,48 @@
+<%
+  var unit = typeof ad !== 'undefined' ? ad : null;
+  var placementId = typeof placementId !== 'undefined' ? placementId : '';
+  var showDesktop = typeof showDesktop !== 'undefined' ? !!showDesktop : false;
+  var mobileSlot = typeof mobileSlot !== 'undefined' && mobileSlot ? mobileSlot : '';
+  var sortOrder = typeof sortOrder !== 'undefined' ? sortOrder : 0;
+%>
+<% if (unit) { %>
+<div
+  class="ad-unit ad-unit--<%= unit.type === 'google' ? 'google' : 'promo' %>"
+  data-ad-unit
+  data-ad-id="<%= unit.id %>"
+  data-placement-id="<%= placementId %>"
+  data-show-desktop="<%= showDesktop ? '1' : '0' %>"
+  data-mobile-slot="<%= mobileSlot %>"
+  data-sort="<%= sortOrder %>"
+  data-ad-type="<%= unit.type %>"
+>
+  <% if (unit.type === 'google') { %>
+  <div class="ad-unit__label muted">Advertisement</div>
+  <ins
+    class="adsbygoogle"
+    style="display:block"
+    data-ad-client="<%= unit.adsenseClient %>"
+    data-ad-slot="<%= unit.adsenseSlot %>"
+    <% if (unit.adsenseFormat) { %>data-ad-format="<%= unit.adsenseFormat %>"<% } else { %>data-ad-format="auto" data-full-width-responsive="true"<% } %>
+  ></ins>
+  <% } else { %>
+  <div class="ad-unit__label muted">Promo</div>
+  <% if (unit.linkUrl) { %>
+  <a class="ad-unit__promo" href="<%= unit.linkUrl %>" rel="sponsored noopener noreferrer" <%= /^https?:\/\//i.test(unit.linkUrl) ? 'target="_blank"' : '' %>>
+  <% } else { %>
+  <div class="ad-unit__promo">
+  <% } %>
+    <% if (unit.imageUrl) { %>
+    <img class="ad-unit__img" src="<%= unit.imageUrl %>" alt="" loading="lazy" decoding="async" />
+    <% } %>
+    <% if (unit.title) { %>
+    <span class="ad-unit__title"><%= unit.title %></span>
+    <% } %>
+  <% if (unit.linkUrl) { %>
+  </a>
+  <% } else { %>
+  </div>
+  <% } %>
+  <% } %>
+</div>
+<% } %>

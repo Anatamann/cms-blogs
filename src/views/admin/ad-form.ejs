@@ -1,0 +1,104 @@
+<%- include('layout-top') %>
+
+<header class="admin-page-header">
+  <h1><%= mode === 'create' ? 'New ad' : 'Edit ad' %></h1>
+  <p class="lead">Promo card (image + link) or Google AdSense unit (client + slot).</p>
+</header>
+
+<% if (error) { %>
+<p class="flash flash-error" role="alert"><%= error %></p>
+<% } %>
+
+<form
+  method="post"
+  action="<%= mode === 'create' ? paths.admin.ads() : paths.admin.adEdit(ad.id) %>"
+  class="admin-form"
+  data-ad-form
+>
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+
+  <div class="field">
+    <label for="name">Name <span class="muted">(admin label)</span></label>
+    <input id="name" name="name" type="text" required maxlength="120" value="<%= ad.name || '' %>" placeholder="e.g. Merch — Eva hoodie" />
+  </div>
+
+  <div class="field">
+    <span class="label-text">Type</span>
+    <div class="radio-row">
+      <label>
+        <input type="radio" name="type" value="promo" data-ad-type <%= (ad.type || 'promo') === 'promo' ? 'checked' : '' %> />
+        Promo card
+      </label>
+      <label>
+        <input type="radio" name="type" value="google" data-ad-type <%= ad.type === 'google' ? 'checked' : '' %> />
+        Google AdSense
+      </label>
+    </div>
+  </div>
+
+  <div class="field">
+    <span class="label-text">Status</span>
+    <div class="radio-row">
+      <label>
+        <input type="radio" name="status" value="active" <%= (ad.status || 'active') === 'active' ? 'checked' : '' %> />
+        Active
+      </label>
+      <label>
+        <input type="radio" name="status" value="paused" <%= ad.status === 'paused' ? 'checked' : '' %> />
+        Paused
+      </label>
+    </div>
+  </div>
+
+  <fieldset class="field" data-ad-fields="promo">
+    <legend>Promo</legend>
+    <label class="field-sub" for="title">Title</label>
+    <input id="title" name="title" type="text" maxlength="200" value="<%= ad.title || '' %>" placeholder="Headline on the card" />
+    <label class="field-sub" for="imageUrl">Image URL</label>
+    <input id="imageUrl" name="imageUrl" type="text" maxlength="500" value="<%= ad.imageUrl || '' %>" placeholder="/uploads/images/….webp or https://…" />
+    <p class="field-hint">Use Media library paths when possible.</p>
+    <label class="field-sub" for="linkUrl">Link URL</label>
+    <input id="linkUrl" name="linkUrl" type="text" maxlength="500" value="<%= ad.linkUrl || '' %>" placeholder="https://… or /blog/slug" />
+  </fieldset>
+
+  <fieldset class="field" data-ad-fields="google">
+    <legend>Google AdSense</legend>
+    <label class="field-sub" for="adsenseClient">Client</label>
+    <input id="adsenseClient" name="adsenseClient" type="text" maxlength="80" value="<%= ad.adsenseClient || '' %>" placeholder="ca-pub-xxxxxxxxxxxxxxxx" />
+    <label class="field-sub" for="adsenseSlot">Slot</label>
+    <input id="adsenseSlot" name="adsenseSlot" type="text" maxlength="80" value="<%= ad.adsenseSlot || '' %>" placeholder="Numeric slot id" />
+    <label class="field-sub" for="adsenseFormat">Format <span class="muted">(optional)</span></label>
+    <input id="adsenseFormat" name="adsenseFormat" type="text" maxlength="80" value="<%= ad.adsenseFormat || '' %>" placeholder="auto" />
+  </fieldset>
+
+  <div class="admin-actions">
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a class="btn btn-ghost" href="<%= paths.admin.ads() %>">Cancel</a>
+  </div>
+</form>
+
+<% if (mode === 'edit') { %>
+<form method="post" action="<%= paths.admin.adDelete(ad.id) %>" class="admin-danger" onsubmit="return confirm('Delete this ad permanently?');">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+  <button type="submit" class="btn btn-danger">Delete ad</button>
+</form>
+<% } %>
+
+<script>
+(function () {
+  var form = document.querySelector('[data-ad-form]');
+  if (!form) return;
+  function sync() {
+    var type = (form.querySelector('input[name="type"]:checked') || {}).value || 'promo';
+    form.querySelectorAll('[data-ad-fields]').forEach(function (el) {
+      el.hidden = el.getAttribute('data-ad-fields') !== type;
+    });
+  }
+  form.querySelectorAll('[data-ad-type]').forEach(function (r) {
+    r.addEventListener('change', sync);
+  });
+  sync();
+})();
+</script>
+
+<%- include('layout-bottom') %>

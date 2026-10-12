@@ -13,12 +13,24 @@ const cspDirectives = {
   fontSrc: ["'self'"],
   formAction: ["'self'"],
   frameAncestors: ["'none'"],
-  imgSrc: ["'self'", 'data:', 'blob:'],
+  imgSrc: ["'self'", 'data:', 'blob:', 'https:'],
   mediaSrc: ["'self'", 'blob:'],
   objectSrc: ["'none'"],
-  scriptSrc: ["'self'", "'unsafe-inline'"],
+  scriptSrc: [
+    "'self'",
+    "'unsafe-inline'",
+    'https://pagead2.googlesyndication.com',
+    'https://www.googletagservices.com',
+    'https://adservice.google.com',
+  ],
   styleSrc: ["'self'", "'unsafe-inline'"],
-  connectSrc: ["'self'"],
+  connectSrc: ["'self'", 'https://pagead2.googlesyndication.com', 'https://googleads.g.doubleclick.net'],
+  frameSrc: [
+    "'self'",
+    'https://googleads.g.doubleclick.net',
+    'https://tpc.googlesyndication.com',
+    'https://www.google.com',
+  ],
   // Only force HTTPS upgrades when the public APP_URL is https://
   upgradeInsecureRequests: config.publicIsHttps ? [] : null,
 };

@@ -188,6 +188,12 @@ Use *italic* or **bold** sparingly. Combine ***bold italic*** only when needed.
 Read more in [our archive](/archive) or an [external review](https://example.com).
 ```
 
+### Ads (optional)
+
+1. Create creatives under admin **Ads** (`/mantri/ads`): **Promo** (image + title + link) or **Google** (AdSense client + slot).
+2. On **Edit post**, use the **Ads** block (max **3**): pick the creative, Desktop yes/no, and Mobile slot (None / Top / Middle / Bottom).
+3. Only one ad per mobile slot. Unassigned posts show no ads.
+
 ### Managed hyperlinks (edit sidebar)
 
 On **Edit post**, open the **Hyperlinks** panel in the sidebar to auto-link a word or phrase across the body:

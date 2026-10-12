@@ -332,3 +332,34 @@
     if (chevron) chevron.textContent = open ? '▾' : '▸';
   });
 })();
+
+/* Post editor: ad placement rows (max 3) */
+(function () {
+  const root = document.querySelector('[data-ads-assign]');
+  if (!root) return;
+  const rows = root.querySelector('[data-ads-rows]');
+  const addBtn = root.querySelector('[data-ads-add]');
+  const tpl = root.querySelector('[data-ads-row-template]');
+  if (!rows || !addBtn || !tpl) return;
+
+  function syncAdd() {
+    addBtn.disabled = rows.querySelectorAll('[data-ads-row]').length >= 3;
+  }
+
+  addBtn.addEventListener('click', () => {
+    if (rows.querySelectorAll('[data-ads-row]').length >= 3) return;
+    const node = tpl.content.cloneNode(true);
+    rows.appendChild(node);
+    syncAdd();
+  });
+
+  rows.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-ads-remove]');
+    if (!btn) return;
+    const row = btn.closest('[data-ads-row]');
+    if (row) row.remove();
+    syncAdd();
+  });
+
+  syncAdd();
+})();

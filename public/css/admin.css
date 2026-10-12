@@ -846,3 +846,39 @@
   padding-top: 0.5rem;
   border-top: 1px dashed var(--border);
 }
+
+/* Post edit: ad placement rows */
+.ads-assign-panel {
+  border-top: 1px solid var(--border);
+  padding-top: 0.75rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.ads-assign-rows {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.ads-assign-row {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.ads-assign-row select {
+  width: 100%;
+  min-width: 0;
+  font-size: 0.85rem;
+}
+
+.ads-assign-desk,
+.ads-assign-mobile {
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}

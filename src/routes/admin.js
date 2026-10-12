@@ -103,6 +103,13 @@ router.post(
 );
 
 // Tags (genres / topics)
+router.get('/ads', adminController.adsList);
+router.get('/ads/new', adminController.adNewGet);
+router.post('/ads', writeLimiter, verifyCsrf, adminController.adCreate);
+router.get('/ads/:id/edit', adminController.adEditGet);
+router.post('/ads/:id/edit', writeLimiter, verifyCsrf, adminController.adUpdate);
+router.post('/ads/:id/delete', writeLimiter, verifyCsrf, adminController.adDelete);
+
 router.get('/tags', adminController.tagsList);
 router.get('/tags/new', adminController.tagNewGet);
 router.post('/tags', writeLimiter, verifyCsrf, adminController.tagCreate);
