@@ -41,7 +41,7 @@
         <tr>
           <td>
             <a href="<%= paths.admin.postEdit(p.id) %>"><%= p.title %></a>
-            <br /><span class="muted"><code>/blog/<%= p.slug %></code></span>
+            <br /><span class="muted"><code><%= paths.post(p) %></code></span>
           </td>
           <td><strong><%= p.viewCount || 0 %></strong></td>
           <td class="muted"><%= p.reactions || 0 %></td>

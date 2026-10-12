@@ -32,7 +32,7 @@
       <% recentPublished.forEach(function (p) { %>
       <li>
         <a href="<%= paths.admin.postEdit(p.id) %>"><%= p.title %></a>
-        <span class="muted"><code>/blog/<%= p.slug %></code></span>
+        <span class="muted"><code><%= paths.post(p) %></code></span>
       </li>
       <% }) %>
     </ul>

@@ -14,7 +14,7 @@
     <% if (mode === 'edit') { %>
     <p class="muted">
       ID <code><%= post.id %></code>
-      · public <code>/blog/<%= post.slug %></code>
+      · public <code><%= paths.post(post) %></code>
     </p>
     <% } else { %>
     <p class="muted">Use <strong>Preview</strong> to see the rendered post without saving.</p>
@@ -22,7 +22,7 @@
   </div>
   <% if (mode === 'edit' && post.status === 'published') { %>
   <div class="admin-actions">
-    <a class="btn btn-ghost" href="<%= paths.post(post.slug) %>" target="_blank" rel="noopener">View public</a>
+    <a class="btn btn-ghost" href="<%= paths.post(post) %>" target="_blank" rel="noopener">View public</a>
   </div>
   <% } %>
 </header>
@@ -61,7 +61,7 @@
       <div class="field">
         <label for="slug">Slug <span class="muted">(public URL)</span></label>
         <input id="slug" name="slug" type="text" maxlength="120" value="<%= post.slug || '' %>" placeholder="auto-from-title" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" />
-        <p class="field-hint"><code>/blog/<span data-slug-preview><%= post.slug || '…' %></span></code></p>
+        <p class="field-hint"><code>/<span data-category-preview><%= (post.category && post.category.slug) || (post.categories && post.categories[0] && post.categories[0].slug) || 'category' %></span>/<span data-slug-preview><%= post.slug || '…' %></span></code></p>
       </div>
       <% if (mode === 'edit') { %>
       <div class="field field-check">
@@ -154,16 +154,16 @@
       </div>
 
       <fieldset class="field">
-        <legend>Categories</legend>
-        <div class="check-grid">
+        <legend>Category <span class="muted">(one — sets URL prefix)</span></legend>
+        <div class="radio-row" style="flex-direction:column;align-items:flex-start;gap:0.35rem">
           <% categories.forEach(function (cat) { %>
           <label>
-            <input type="checkbox" name="categoryIds" value="<%= cat.id %>" <%= selectedCats.indexOf(cat.id) !== -1 ? 'checked' : '' %> />
-            <%= cat.name %>
+            <input type="radio" name="categoryIds" value="<%= cat.id %>" <%= selectedCats.indexOf(cat.id) !== -1 ? 'checked' : '' %> />
+            <%= cat.name %> <span class="muted">(/<%= cat.slug %>/…)</span>
           </label>
           <% }) %>
         </div>
-        <label class="field-sub" for="newCategories">Add (comma-separated)</label>
+        <label class="field-sub" for="newCategories">Or add new (used as the category)</label>
         <input id="newCategories" name="newCategories" type="text" placeholder="e.g. Spoilers" value="<%= newCatsVal %>" />
       </fieldset>
 

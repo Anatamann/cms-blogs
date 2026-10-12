@@ -92,7 +92,7 @@
         <h2 id="reactions-heading" class="section-title">How’d it hit?</h2>
         <div class="reactions-row" role="group" aria-label="Post reactions">
           <% reactions.types.forEach(function (r) { %>
-          <form method="post" action="<%= paths.postReaction(post.slug) %>" class="reaction-form">
+          <form method="post" action="<%= paths.postReaction(post) %>" class="reaction-form">
             <input type="hidden" name="type" value="<%= r.type %>" />
             <button
               type="submit"
@@ -135,7 +135,7 @@
         </ul>
         <% } %>
 
-        <form method="post" action="<%= paths.postComment(post.slug) %>" class="comment-form contact-form">
+        <form method="post" action="<%= paths.postComment(post) %>" class="comment-form contact-form">
           <h3 class="comment-form__title">Join the thread</h3>
           <p class="field-hint">We moderate first so the feed stays chill — your take shows up after approval.</p>
 

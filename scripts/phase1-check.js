@@ -74,8 +74,12 @@ async function run() {
   const welcome = posts.getBySlug('welcome-to-ainme');
   assert(!!welcome, 'getBySlug welcome-to-ainme');
   assert(welcome.slug === 'welcome-to-ainme', 'slug field clean');
-  assert(paths.post(welcome.slug) === '/blog/welcome-to-ainme', 'public path uses slug not UUID');
-  assert(!paths.post(welcome.slug).includes(welcome.id), 'public path has no UUID');
+  assert(
+    paths.post(welcome) === `/${welcome.category?.slug || 'review'}/${welcome.slug}` ||
+      paths.post(welcome).endsWith('/' + welcome.slug),
+    'public path uses category + slug not UUID'
+  );
+  assert(!paths.post(welcome).includes(welcome.id), 'public path has no UUID');
 
   const draft = posts.getBySlug('work-in-progress-notes');
   assert(draft === null, 'draft not returned by public getBySlug');

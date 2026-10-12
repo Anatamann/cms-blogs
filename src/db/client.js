@@ -36,6 +36,14 @@ function getDb() {
   const migrationsFolder = path.join(__dirname, 'migrations');
   migrate(db, { migrationsFolder });
 
+  // Enforce one category per post after slug renames / legacy data.
+  try {
+    const postsService = require('../services/posts');
+    postsService.normalizeToSingleCategory();
+  } catch {
+    // Ignore if posts service cannot load during early boot edge cases.
+  }
+
   return db;
 }
 

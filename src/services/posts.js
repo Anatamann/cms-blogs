@@ -97,19 +97,24 @@ function hydratePosts(postRows) {
   const catsByPost = groupBy(catLinks, 'postId');
   const tagsByPost = groupBy(tagLinks, 'postId');
 
-  return postRows.map((p) => ({
-    ...p,
-    author: authorsById[p.authorId]
-      ? {
-          id: authorsById[p.authorId].id,
-          username: authorsById[p.authorId].username,
-          displayName: authorsById[p.authorId].displayName,
-          bio: authorsById[p.authorId].bio,
-        }
-      : null,
-    categories: (catsByPost[p.id] || []).map(({ id, name, slug }) => ({ id, name, slug })),
-    tags: (tagsByPost[p.id] || []).map(({ id, name, slug }) => ({ id, name, slug })),
-  }));
+  return postRows.map((p) => {
+    const cats = (catsByPost[p.id] || []).map(({ id, name, slug }) => ({ id, name, slug }));
+    return {
+      ...p,
+      author: authorsById[p.authorId]
+        ? {
+            id: authorsById[p.authorId].id,
+            username: authorsById[p.authorId].username,
+            displayName: authorsById[p.authorId].displayName,
+            bio: authorsById[p.authorId].bio,
+          }
+        : null,
+      categories: cats,
+      /** Single primary category for /{category}/{slug} URLs. */
+      category: cats[0] || null,
+      tags: (tagsByPost[p.id] || []).map(({ id, name, slug }) => ({ id, name, slug })),
+    };
+  });
 }
 
 function groupBy(rows, key) {
@@ -439,7 +444,9 @@ function setTaxonomies(id, categoryIds, tagIds) {
 
   if (categoryIds) {
     db.delete(postCategories).where(eq(postCategories.postId, id)).run();
-    for (const categoryId of categoryIds) {
+    // Exactly one category per post (URL prefix).
+    const only = categoryIds.filter(Boolean).slice(0, 1);
+    for (const categoryId of only) {
       db.insert(postCategories).values({ postId: id, categoryId }).run();
     }
   }
@@ -450,6 +457,48 @@ function setTaxonomies(id, categoryIds, tagIds) {
       db.insert(postTags).values({ postId: id, tagId }).run();
     }
   }
+}
+
+/**
+ * Keep at most one category per post (prefer slug "review" when present).
+ * Safe to run on every boot after migrations.
+ */
+function normalizeToSingleCategory() {
+  const db = getDb();
+  const raw = require('../db/client').getSqlite();
+  const dupes = raw
+    .prepare(
+      `SELECT post_id AS postId, COUNT(*) AS c
+       FROM post_categories
+       GROUP BY post_id
+       HAVING c > 1`
+    )
+    .all();
+  if (!dupes.length) return 0;
+
+  let fixed = 0;
+  for (const row of dupes) {
+    const links = db
+      .select({
+        categoryId: postCategories.categoryId,
+        slug: categories.slug,
+      })
+      .from(postCategories)
+      .innerJoin(categories, eq(postCategories.categoryId, categories.id))
+      .where(eq(postCategories.postId, row.postId))
+      .all();
+    const preferred =
+      links.find((l) => l.slug === 'review') ||
+      links.find((l) => l.slug === 'fan-theory') ||
+      links[0];
+    if (!preferred) continue;
+    db.delete(postCategories).where(eq(postCategories.postId, row.postId)).run();
+    db.insert(postCategories)
+      .values({ postId: row.postId, categoryId: preferred.categoryId })
+      .run();
+    fixed += 1;
+  }
+  return fixed;
 }
 
 /**
@@ -490,4 +539,5 @@ module.exports = {
   createPost,
   updatePost,
   deletePost,
+  normalizeToSingleCategory,
 };

@@ -28,8 +28,8 @@
     </div>
     <p class="admin-comment-card__post">
       On
-      <% if (c.postSlug) { %>
-      <a href="<%= paths.post(c.postSlug) %>" target="_blank" rel="noopener"><%= c.postTitle || c.postSlug %></a>
+      <% if (c.postUrl) { %>
+      <a href="<%= c.postUrl %>" target="_blank" rel="noopener"><%= c.postTitle || c.postSlug %></a>
       <% } else { %>
       <span class="muted">(deleted post)</span>
       <% } %>

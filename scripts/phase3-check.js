@@ -26,7 +26,7 @@ assert(
   paths.admin.postEdit('a1b2c3d4-e5f6-4a70-8b9c-0d1e2f3a4b5c').includes('a1b2c3d4-e5f6-4a70-8b9c-0d1e2f3a4b5c'),
   'admin edit uses UUID'
 );
-assert(paths.post('hello-world') === '/blog/hello-world', 'public still slug-based');
+assert(paths.post('news', 'hello-world') === '/news/hello-world', 'public still slug-based');
 
 function getCookie(res) {
   const raw = res.headers.getSetCookie ? res.headers.getSetCookie() : [];

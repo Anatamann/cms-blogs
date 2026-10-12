@@ -8,7 +8,14 @@ const settingsService = require('../services/settings');
 const usersService = require('../services/users');
 const commentsService = require('../services/comments');
 const reactionsService = require('../services/reactions');
-const { paths, isValidSlug, slugify } = require('../utils/slug');
+const {
+  paths,
+  isValidSlug,
+  slugify,
+  canonicalCategorySlug,
+  primaryCategory,
+  CATEGORY_SLUG_ALIASES,
+} = require('../utils/slug');
 const {
   plainExcerpt,
   truncateText,
@@ -53,13 +60,27 @@ function presentPostCard(post) {
   const workSlug =
     post.workSlug || (post.workTitle ? slugify(post.workTitle) : '');
   const rawExcerpt = post.excerpt || plainExcerpt(post.bodyMd, CARD_EXCERPT_LEN);
+  const category = primaryCategory(post);
   return {
     ...post,
+    category,
     excerpt: truncateText(rawExcerpt, CARD_EXCERPT_LEN),
     publishedLabel: formatDate(post.publishedAt || post.createdAt),
-    url: paths.post(post.slug),
+    url: paths.post(post),
     workUrl: workSlug ? paths.work(workSlug) : null,
   };
+}
+
+/**
+ * Redirect to a post's canonical /{category}/{slug} URL.
+ * @param {import('express').Response} res
+ * @param {object} post hydrated post
+ * @param {string} [hash]
+ * @param {number} [status=301]
+ */
+function redirectToPostCanonical(res, post, hash, status = 301) {
+  const target = paths.post(post) + (hash || '');
+  return res.redirect(status, target);
 }
 
 /**
@@ -199,15 +220,40 @@ function blogIndex(req, res) {
   });
 }
 
-function blogPost(req, res, next) {
+/**
+ * Legacy GET /blog/:slug → 301 /{category}/{slug}
+ */
+function blogPostRedirect(req, res, next) {
   const { slug } = req.params;
-  if (!isValidSlug(slug)) {
-    return next();
+  if (!isValidSlug(slug)) return next();
+  const post = postsService.getBySlug(slug);
+  if (!post || post.status !== 'published') return next();
+  return redirectToPostCanonical(res, post);
+}
+
+/**
+ * GET /{categorySlug}/{postSlug} — canonical article page.
+ */
+function categoryPost(req, res, next) {
+  const categorySlug = canonicalCategorySlug(req.params.categorySlug);
+  const { postSlug } = req.params;
+  if (!isValidSlug(categorySlug) || !isValidSlug(postSlug)) return next();
+
+  // If first segment is an old alias, 301 to canonical category prefix.
+  if (CATEGORY_SLUG_ALIASES[req.params.categorySlug]) {
+    return res.redirect(301, paths.post(categorySlug, postSlug));
   }
 
-  const post = postsService.getBySlug(slug);
-  if (!post) {
-    return next();
+  const category = categoriesService.getBySlug(categorySlug);
+  if (!category) return next();
+
+  const post = postsService.getBySlug(postSlug);
+  if (!post || post.status !== 'published') return next();
+
+  const postCat = primaryCategory(post);
+  if (!postCat || postCat.slug !== categorySlug) {
+    // Wrong category in URL → send to canonical
+    return redirectToPostCanonical(res, post);
   }
 
   // Simple view counter: once per browser session per post (avoids refresh spam)
@@ -218,14 +264,12 @@ function blogPost(req, res, next) {
       const nextCount = postsService.incrementViewCount(post.id);
       if (nextCount != null) viewCount = nextCount;
       req.session.viewedPosts.push(post.id);
-      // Cap array growth for long sessions
       if (req.session.viewedPosts.length > 200) {
         req.session.viewedPosts = req.session.viewedPosts.slice(-100);
       }
-      // Lightweight analytics (device / region) — same session gate as views
       analyticsService.recordPageview(req, {
         postId: post.id,
-        path: paths.post(post.slug),
+        path: paths.post(post),
       });
     }
   } else {
@@ -233,7 +277,7 @@ function blogPost(req, res, next) {
     if (nextCount != null) viewCount = nextCount;
     analyticsService.recordPageview(req, {
       postId: post.id,
-      path: paths.post(post.slug),
+      path: paths.post(post),
     });
   }
 
@@ -251,6 +295,7 @@ function blogPost(req, res, next) {
   const pageScripts = [];
   if (presented.hasScrollBackdrop) pageScripts.push('/js/post-scroll.js');
   if (adPlacements.length) pageScripts.push('/js/ads.js');
+  const canonicalPath = paths.post(presented);
   res.render('pages/post', {
     title: presented.title,
     metaDescription: presented.excerpt,
@@ -261,7 +306,7 @@ function blogPost(req, res, next) {
     adPlacements,
     commentFlash: req.session?.commentFlash || null,
     commentForm: req.session?.commentForm || { name: '', email: '', body: '' },
-    canonicalUrl: absoluteUrl(config.appUrl, paths.post(presented.slug)),
+    canonicalUrl: absoluteUrl(config.appUrl, canonicalPath),
     ogImage,
     pageScripts,
     jsonLd: {
@@ -275,7 +320,7 @@ function blogPost(req, res, next) {
       author: presented.author
         ? { '@type': 'Person', name: presented.author.displayName }
         : undefined,
-      mainEntityOfPage: absoluteUrl(config.appUrl, paths.post(presented.slug)),
+      mainEntityOfPage: absoluteUrl(config.appUrl, canonicalPath),
     },
     siteDescription: meta.siteDescription,
     ...sidebarData(),
@@ -288,10 +333,11 @@ function blogPost(req, res, next) {
 }
 
 /**
- * POST /blog/:slug/comments — moderated (pending until admin approves).
+ * POST /{category}/{slug}/comments — moderated (pending until admin approves).
  */
 function postComment(req, res, next) {
-  const { slug } = req.params;
+  const categorySlug = canonicalCategorySlug(req.params.categorySlug || '');
+  const slug = req.params.postSlug || req.params.slug;
   if (!isValidSlug(slug)) return next();
 
   const post = postsService.getBySlug(slug);
@@ -299,7 +345,7 @@ function postComment(req, res, next) {
 
   // Honeypot — bots fill hidden "website" field
   if (req.body.website) {
-    return res.redirect(`${paths.post(slug)}#comments`);
+    return redirectToPostCanonical(res, post, '#comments', 303);
   }
 
   ensureVisitorKey(req);
@@ -329,15 +375,15 @@ function postComment(req, res, next) {
   }
 
   req.session.save(() => {
-    res.redirect(`${paths.post(slug)}#comments`);
+    redirectToPostCanonical(res, post, '#comments', 303);
   });
 }
 
 /**
- * POST /blog/:slug/reactions — toggle reaction type for this visitor.
+ * POST /{category}/{slug}/reactions — toggle reaction type for this visitor.
  */
 function postReaction(req, res, next) {
-  const { slug } = req.params;
+  const slug = req.params.postSlug || req.params.slug;
   if (!isValidSlug(slug)) return next();
 
   const post = postsService.getBySlug(slug);
@@ -348,7 +394,6 @@ function postReaction(req, res, next) {
 
   try {
     const result = reactionsService.toggle(post.id, type, visitorKey);
-    // JSON for progressive enhancement; form POST also works
     if (req.accepts('json') && req.get('accept')?.includes('application/json')) {
       return res.json(result);
     }
@@ -359,7 +404,7 @@ function postReaction(req, res, next) {
   }
 
   req.session.save(() => {
-    res.redirect(`${paths.post(slug)}#reactions`);
+    redirectToPostCanonical(res, post, '#reactions', 303);
   });
 }
 
@@ -402,8 +447,33 @@ function workArchive(req, res, next) {
   });
 }
 
+/**
+ * Legacy GET /category/:slug → 301 /{canonicalSlug}
+ */
+function categoryLegacyRedirect(req, res, next) {
+  const raw = req.params.slug;
+  if (!raw) return next();
+  const canonical = canonicalCategorySlug(raw);
+  if (!isValidSlug(canonical) && !CATEGORY_SLUG_ALIASES[raw]) return next();
+  const category = categoriesService.getBySlug(canonical);
+  if (!category) return next();
+  const qs = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+  return res.redirect(301, paths.category(category.slug) + qs);
+}
+
+/**
+ * GET /{categorySlug} — category archive (also handles old alias 301).
+ */
 function categoryArchive(req, res, next) {
-  const { slug } = req.params;
+  const raw = req.params.categorySlug || req.params.slug;
+  if (!raw) return next();
+
+  if (CATEGORY_SLUG_ALIASES[raw]) {
+    const qs = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+    return res.redirect(301, paths.category(CATEGORY_SLUG_ALIASES[raw]) + qs);
+  }
+
+  const slug = canonicalCategorySlug(raw);
   if (!isValidSlug(slug)) return next();
 
   const category = categoriesService.getBySlug(slug);
@@ -418,8 +488,7 @@ function categoryArchive(req, res, next) {
     limit: meta.postsPerPage,
   });
 
-  const pageUrl = (p) =>
-    p > 1 ? `${paths.category(slug)}?page=${p}` : paths.category(slug);
+  const pageUrl = (p) => paths.categoryPage(slug, p);
 
   res.render('pages/blog', {
     title: category.name,
@@ -611,7 +680,7 @@ function rss(_req, res) {
 
   const itemXml = items
     .map((post) => {
-      const link = escapeXml(absoluteUrl(config.appUrl, paths.post(post.slug)));
+      const link = escapeXml(absoluteUrl(config.appUrl, paths.post(post)));
       const title = escapeXml(post.title);
       const description = escapeXml(post.excerpt || plainExcerpt(post.bodyMd));
       const pubDate = post.publishedAt
@@ -659,7 +728,7 @@ function sitemap(_req, res) {
 
   const urls = [
     ...staticPaths.map((p) => absoluteUrl(config.appUrl, p)),
-    ...items.map((p) => absoluteUrl(config.appUrl, paths.post(p.slug))),
+    ...items.map((p) => absoluteUrl(config.appUrl, paths.post(p))),
     ...cats.map((c) => absoluteUrl(config.appUrl, paths.category(c.slug))),
     ...tags.map((t) => absoluteUrl(config.appUrl, paths.tag(t.slug))),
   ];
@@ -682,11 +751,13 @@ ${body}
 module.exports = {
   home,
   blogIndex,
-  blogPost,
+  blogPostRedirect,
+  categoryPost,
   postComment,
   postReaction,
   workArchive,
   categoryArchive,
+  categoryLegacyRedirect,
   tagArchive,
   search,
   archive,

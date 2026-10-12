@@ -27,8 +27,8 @@ assert(html.includes('<h1'), 'markdown renders h1');
 assert(html.includes('<strong>bold</strong>') || html.includes('<strong>bold</strong>'.toLowerCase()) || html.includes('bold'), 'markdown bold');
 assert(!html.includes('<script'), 'markdown sanitized (no script from md alone)');
 assert(plainExcerpt('## Title\n\nHello world').includes('Hello'), 'plainExcerpt');
-assert(paths.post('welcome-to-ainme') === '/blog/welcome-to-ainme', 'post path slug');
-assert(!paths.post('welcome-to-ainme').match(/[0-9a-f]{8}-[0-9a-f]{4}/), 'post path has no UUID');
+assert(paths.post('review', 'welcome-to-ainme') === '/review/welcome-to-ainme', 'post path slug');
+assert(!paths.post('review', 'welcome-to-ainme').match(/[0-9a-f]{8}-[0-9a-f]{4}/), 'post path has no UUID');
 
 async function http() {
   const base = process.env.BASE_URL;

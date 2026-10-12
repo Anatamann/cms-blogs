@@ -3,7 +3,7 @@
 /** Max length after normalization (see product conventions). */
 const SLUG_MAX_LENGTH = 120;
 
-/** Slugs that must not collide with static/public routes. */
+/** Slugs that must not collide with static/public routes (first path segment). */
 const RESERVED_SLUGS = new Set([
   'admin',
   'mantri',
@@ -30,7 +30,19 @@ const RESERVED_SLUGS = new Set([
   'work',
   'category',
   'tag',
+  'ads',
+  'css',
+  'js',
+  'videos',
+  'images',
+  'fonts',
 ]);
+
+/** Old category slugs → canonical (for 301s). */
+const CATEGORY_SLUG_ALIASES = {
+  reviews: 'review',
+  'fan-theories': 'fan-theory',
+};
 
 const SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -98,6 +110,49 @@ async function ensureUniqueSlug(base, existsCheck) {
 }
 
 /**
+ * @param {string} slug
+ * @returns {string}
+ */
+function canonicalCategorySlug(slug) {
+  const s = String(slug || '');
+  return CATEGORY_SLUG_ALIASES[s] || s;
+}
+
+/**
+ * Primary category on a hydrated post.
+ * @param {{ category?: { slug: string }, categories?: Array<{ slug: string }> }|null|undefined} post
+ * @returns {{ id?: string, name?: string, slug: string }|null}
+ */
+function primaryCategory(post) {
+  if (!post) return null;
+  if (post.category && post.category.slug) return post.category;
+  if (Array.isArray(post.categories) && post.categories.length) return post.categories[0];
+  return null;
+}
+
+/**
+ * Public article path: /{categorySlug}/{postSlug}
+ * Accepts (categorySlug, postSlug) or a hydrated post object.
+ * @param {string|{ slug?: string, category?: { slug: string }, categories?: Array<{ slug: string }> }} categorySlugOrPost
+ * @param {string} [postSlug]
+ * @returns {string}
+ */
+function postPath(categorySlugOrPost, postSlug) {
+  if (categorySlugOrPost && typeof categorySlugOrPost === 'object') {
+    const post = categorySlugOrPost;
+    const cat = primaryCategory(post);
+    if (cat?.slug && post.slug) return `/${cat.slug}/${post.slug}`;
+    if (post.slug) return `/blog/${post.slug}`;
+    return '/blog';
+  }
+  const cat = String(categorySlugOrPost || '');
+  const slug = String(postSlug || '');
+  if (cat && slug) return `/${cat}/${slug}`;
+  if (slug) return `/blog/${slug}`;
+  return '/blog';
+}
+
+/**
  * Canonical public URL path builders — keep routes consistent site-wide.
  * Public pages use slugs only; never UUIDs.
  */
@@ -105,8 +160,13 @@ const paths = {
   home: () => '/',
   blog: () => '/blog',
   blogPage: (page) => (page && Number(page) > 1 ? `/blog?page=${Number(page)}` : '/blog'),
-  post: (slug) => `/blog/${slug}`,
-  category: (slug) => `/category/${slug}`,
+  /** @type {(categorySlugOrPost: string|object, postSlug?: string) => string} */
+  post: postPath,
+  category: (slug) => `/${canonicalCategorySlug(slug)}`,
+  categoryPage: (slug, page) => {
+    const base = `/${canonicalCategorySlug(slug)}`;
+    return page && Number(page) > 1 ? `${base}?page=${Number(page)}` : base;
+  },
   tag: (slug) => `/tag/${slug}`,
   /** Anime/manga/work archive — slug from work title. */
   work: (slug) => `/work/${slug}`,
@@ -162,17 +222,22 @@ const paths = {
     commentReject: (id) => `/mantri/comments/${id}/reject`,
     commentDelete: (id) => `/mantri/comments/${id}/delete`,
   },
-  /** Public engagement (slug-based, never UUID). */
-  postComment: (slug) => `/blog/${slug}/comments`,
-  postReaction: (slug) => `/blog/${slug}/reactions`,
+  /** Public engagement (category + post slug). */
+  postComment: (categorySlugOrPost, postSlug) => `${postPath(categorySlugOrPost, postSlug)}/comments`,
+  postReaction: (categorySlugOrPost, postSlug) =>
+    `${postPath(categorySlugOrPost, postSlug)}/reactions`,
 };
 
 module.exports = {
   SLUG_MAX_LENGTH,
   RESERVED_SLUGS,
+  CATEGORY_SLUG_ALIASES,
   SLUG_REGEX,
   slugify,
   isValidSlug,
   ensureUniqueSlug,
+  canonicalCategorySlug,
+  primaryCategory,
+  postPath,
   paths,
 };

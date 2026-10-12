@@ -39,7 +39,7 @@
       <td class="admin-row-actions">
         <a href="<%= paths.admin.postPreview(p.id) %>">Preview</a>
         <% if (p.status === 'published') { %>
-        · <a href="<%= paths.post(p.slug) %>" target="_blank" rel="noopener">Public</a>
+        · <a href="<%= paths.post(p) %>" target="_blank" rel="noopener">Public</a>
         <% } %>
         · <a href="<%= paths.admin.postEdit(p.id) %>">Edit</a>
       </td>

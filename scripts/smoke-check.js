@@ -24,8 +24,9 @@ assert(slugify('Neon Genesis Review!') === 'neon-genesis-review', 'slugify basic
 assert(slugify('  --Hello__World--  ') === 'hello-world', 'slugify collapse');
 assert(isValidSlug('reviews') === true, 'valid slug');
 assert(isValidSlug('admin') === false, 'reserved slug blocked');
-assert(paths.post('neon-genesis-review') === '/blog/neon-genesis-review', 'post path');
-assert(paths.category('reviews') === '/category/reviews', 'category path');
+assert(paths.post('review', 'neon-genesis-review') === '/review/neon-genesis-review', 'post path');
+assert(paths.category('review') === '/review', 'category path');
+assert(paths.category('reviews') === '/review', 'category alias');
 assert(paths.admin.postEdit('550e8400-e29b-41d4-a716-446655440000').includes('550e8400'), 'admin uses id');
 
 const id = generateId();

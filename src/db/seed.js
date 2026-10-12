@@ -84,7 +84,15 @@ function readBody(bodyFile) {
  * Ensure a category row by slug.
  */
 function ensureCategory(db, { id, name, slug, description }) {
-  const existing = db.select().from(categories).where(eq(categories.slug, slug)).get();
+  let existing = db.select().from(categories).where(eq(categories.slug, slug)).get();
+  if (!existing && id && isValidId(id)) {
+    existing = db.select().from(categories).where(eq(categories.id, id)).get();
+    // Keep slug canonical if this row was renamed (e.g. reviews → review).
+    if (existing && existing.slug !== slug) {
+      db.update(categories).set({ slug, name }).where(eq(categories.id, existing.id)).run();
+      existing = { ...existing, slug, name };
+    }
+  }
   if (existing) return existing;
   const ts = nowIso();
   const row = {
@@ -241,7 +249,7 @@ function ensureTaxonomy(db) {
   ensureCategory(db, {
     id: IDS.catReviews,
     name: 'Reviews',
-    slug: 'reviews',
+    slug: 'review',
     description: 'Spoiler-aware takes on full series, seasons, and specials.',
   });
   ensureCategory(db, {
@@ -253,7 +261,7 @@ function ensureTaxonomy(db) {
   ensureCategory(db, {
     id: IDS.catTheories,
     name: 'Fan Theories',
-    slug: 'fan-theories',
+    slug: 'fan-theory',
     description: 'Late-night speculation with receipts — mild spoilers when needed.',
   });
 

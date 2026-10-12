@@ -36,7 +36,7 @@ Fill these fields carefully:
 | Field | Purpose | Tips |
 |--------|---------|------|
 | **Title** | Main headline | Clear, specific; used for the public page title. |
-| **Slug** | URL segment | Lowercase kebab-case, e.g. `eva-rebuild-review`. Leave blank to auto-build from the title. Public URL: `/blog/your-slug` (never a UUID). |
+| **Slug** | URL segment | Lowercase kebab-case, e.g. `eva-rebuild-review`. Leave blank to auto-build from the title. Public URL: `/{category}/{slug}` e.g. `/review/eva-rebuild-review` (never a UUID). |
 | **Excerpt** | Short teaser | 1–2 sentences for cards, RSS, and meta description. |
 | **Body (Markdown)** | Full article | See [Markdown format](#markdown-format-for-posts) below. |
 | **Status** | Draft vs public | Use **Draft** while writing; **Published** when ready. |
@@ -47,7 +47,7 @@ Fill these fields carefully:
 
 - **Save** writes the post to the database (even as draft).
 - **Preview** renders the form **without saving** (banner: unsaved). Use **Back to editor** to keep editing.
-- After the first save, the URL becomes **Edit** with a stable UUID (`/mantri/posts/<uuid>/edit`). Public readers still only see `/blog/<slug>`.
+- After the first save, the URL becomes **Edit** with a stable UUID (`/mantri/posts/<uuid>/edit`). Public readers see `/{category-slug}/{slug}` (e.g. `/review/…`, `/fan-theory/…`, `/news/…`).
 
 ---
 
@@ -101,7 +101,7 @@ Before setting **Published** and clicking **Save**:
 - [ ] **Preview** looks right (and draft is **Saved** when you are done)  
 - [ ] Status = **Published**, then **Save**  
 
-Open the public URL: `/blog/your-slug`.
+Open the public URL: `/review/your-slug` (or `/fan-theory/…` / `/news/…` depending on category). Old `/blog/your-slug` links 301 to the new path.
 
 ---
 

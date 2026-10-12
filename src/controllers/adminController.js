@@ -29,7 +29,8 @@ function asArray(value) {
  * @param {import('express').Request} req
  */
 async function resolveTaxonomies(req) {
-  const categoryIds = asArray(req.body.categoryIds).filter(isValidId);
+  // Single category (radio) — keep only the first id.
+  const categoryIds = asArray(req.body.categoryIds).filter(isValidId).slice(0, 1);
   const tagIds = asArray(req.body.tagIds).filter(isValidId);
 
   const newCategories = String(req.body.newCategories || '')
@@ -38,9 +39,10 @@ async function resolveTaxonomies(req) {
     .filter(Boolean);
 
   for (const name of newCategories) {
+    if (categoryIds.length) break; // only one category
     const existing = categoriesService.getBySlug(slugify(name));
     if (existing) {
-      if (!categoryIds.includes(existing.id)) categoryIds.push(existing.id);
+      categoryIds.push(existing.id);
       continue;
     }
     try {
@@ -70,7 +72,7 @@ async function resolveTaxonomies(req) {
     }
   }
 
-  return { categoryIds, tagIds };
+  return { categoryIds: categoryIds.slice(0, 1), tagIds };
 }
 
 function parsePostBody(req) {
@@ -214,10 +216,16 @@ function commentsList(req, res) {
   const status = req.query.status || 'pending';
   const page = Math.max(1, Number(req.query.page) || 1);
   const result = commentsService.listForAdmin({ status, page, limit: 30 });
+  const items = result.items.map((c) => {
+    if (!c.postSlug) return { ...c, postUrl: null };
+    const post = postsService.getBySlug(c.postSlug);
+    return { ...c, postUrl: post ? paths.post(post) : paths.post(c.postSlug) };
+  });
 
   res.render('admin/comments', {
     title: 'Comments',
     ...result,
+    items,
     formatDate,
   });
 }
@@ -477,6 +485,19 @@ async function postCreate(req, res) {
     });
   }
 
+  if (data.status === 'published' && !categoryIds.length) {
+    return res.status(400).render('admin/post-form', {
+      title: 'New post',
+      mode: 'create',
+      post: { ...data, categories: [], tags: [] },
+      categories: categoriesService.listCategories(),
+      tags: tagsService.listTags(),
+      error: 'Pick a category before publishing (it becomes the URL prefix).',
+      selectedCategoryIds: categoryIds,
+      selectedTagIds: tagIds,
+    });
+  }
+
   try {
     const post = await postsService.createPost({
       title: data.title,
@@ -580,6 +601,23 @@ async function postUpdate(req, res, next) {
       activeAds: adsService.listActiveAds(),
       adPlacements: adsService.listPlacementsByPost(id),
       error: 'Title is required.',
+      selectedCategoryIds: categoryIds,
+      selectedTagIds: tagIds,
+    });
+  }
+
+  if (data.status === 'published' && !categoryIds.length) {
+    return res.status(400).render('admin/post-form', {
+      title: `Edit: ${existing.title}`,
+      mode: 'edit',
+      post: { ...existing, ...data },
+      categories: categoriesService.listCategories(),
+      tags: tagsService.listTags(),
+      hyperlinks: hyperlinksService.listByPost(id),
+      editingHyperlinkId: null,
+      activeAds: adsService.listActiveAds(),
+      adPlacements: adsService.listPlacementsByPost(id),
+      error: 'Pick a category before publishing (it becomes the URL prefix).',
       selectedCategoryIds: categoryIds,
       selectedTagIds: tagIds,
     });
@@ -755,7 +793,16 @@ function postPreviewForm(req, res) {
         status: data.status,
         publishedLabel: formatDate(new Date().toISOString()),
         author,
-        url: paths.post(slugGuess),
+        url: paths.post(
+          (postId && postsService.getById(postId)) || {
+            slug: slugGuess,
+            categories: asArray(req.body.categoryIds)
+              .filter(isValidId)
+              .slice(0, 1)
+              .map((cid) => categoriesService.getById(cid))
+              .filter(Boolean),
+          }
+        ),
       },
       isDraft: data.status !== 'published',
       isFormPreview: true,
@@ -783,7 +830,7 @@ function postPreview(req, res, next) {
       excerpt,
       hideExcerpt,
       publishedLabel: formatDate(post.publishedAt || post.createdAt),
-      url: paths.post(post.slug),
+      url: paths.post(post),
     },
     isDraft: post.status !== 'published',
     isFormPreview: false,
