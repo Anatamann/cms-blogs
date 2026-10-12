@@ -15,6 +15,12 @@ data/*
 *.sqlite-shm
 *.db
 
+# Local demo blog sources — keep on localhost only; do not push/update on the server
+src/db/seed-data/**
+!src/db/seed-data/.gitkeep
+public/test-blogs/**
+!public/test-blogs/.gitkeep
+
 # Uploads (keep folder structure only)
 public/uploads/images/*
 public/uploads/gifs/*

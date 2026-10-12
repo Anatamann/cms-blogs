@@ -46,7 +46,12 @@ scripts/docker-*.sh
 coverage
 tmp
 .tmp
-# Keep scripts/import-test-blogs.js (copied in Dockerfile) + public/test-blogs/*.odt
+# Keep scripts/import-test-blogs.js (copied in Dockerfile)
+# Demo catalogs stay on localhost — do not bake into production images
+src/db/seed-data/**
+!src/db/seed-data/.gitkeep
+public/test-blogs/**
+!public/test-blogs/.gitkeep
 
 # Docker meta (avoid recursive context weirdness)
 docker-compose*.yml

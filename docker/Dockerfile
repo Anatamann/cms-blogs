@@ -37,18 +37,15 @@ COPY public ./public
 # Ops helpers (import-test-blogs.js optional if ODTs absent)
 COPY scripts/backup.sh scripts/restore.sh scripts/import-test-blogs.js ./scripts/
 
-# Verify migrations + seed catalog shipped in the image (fail build if missing)
+# Verify migrations ship in the image. Demo seed-data is optional (localhost-only / gitignored).
 RUN test -f src/db/migrations/0000_initial.sql \
   && test -f src/db/migrations/0005_post_work_slug.sql \
   && test -f src/db/migrations/0006_analytics_events.sql \
   && test -f src/db/migrations/0007_post_cover_image.sql \
   && test -f src/db/migrations/0008_post_backdrop_images.sql \
-  && test -f src/db/seed-data/catalog.json \
-  && test -f src/db/seed-data/dr-stone-season-2-stone-wars.md \
-  && test -f src/db/seed-data/mushoku-tensei-season-1-recap.md \
-  && test -f src/db/seed-data/oshi-no-ko-idol-billboard.md \
-  && ls src/db/migrations/*.sql \
-  && ls src/db/seed-data/*.md | wc -l
+  && test -f src/db/migrations/0009_post_hyperlinks.sql \
+  && test -f src/db/migrations/0010_ads.sql \
+  && ls src/db/migrations/*.sql
 
 # Persist DB + uploads via volumes; seed dirs exist even before mount
 RUN mkdir -p \

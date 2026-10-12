@@ -376,10 +376,7 @@ function ensureCatalogPosts(db) {
       if (workTitle && !post.workTitle) patch.workTitle = workTitle;
       if (workSlug && !post.workSlug) patch.workSlug = workSlug;
       if (excerpt && !post.excerpt) patch.excerpt = excerpt;
-      // If body is tiny placeholder and we have a richer seed file, upgrade once
-      if (bodyMd.length > (post.bodyMd || '').length + 50) {
-        patch.bodyMd = bodyMd;
-      }
+      // Never overwrite existing bodyMd — live/server edits and demo deletions stay intact.
       if (Object.keys(patch).length) {
         patch.updatedAt = ts;
         db.update(posts).set(patch).where(eq(posts.id, post.id)).run();
