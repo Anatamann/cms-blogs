@@ -32,7 +32,7 @@ const config = {
   env: process.env.NODE_ENV || 'development',
   port: Number(process.env.PORT) || 3000,
   appUrl: process.env.APP_URL || 'http://localhost:3000',
-  siteName: process.env.SITE_NAME || 'Ainme',
+  siteName: process.env.SITE_NAME || 'OctoSensei',
   sessionSecret: process.env.SESSION_SECRET || 'dev-only-change-me',
   rootDir,
   dataDir,

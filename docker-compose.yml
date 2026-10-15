@@ -1,4 +1,4 @@
-# Ainme — Docker Compose (app + Nginx)
+# OctoSensei — Docker Compose (app + Nginx)
 #
 # Quick start:
 #   cp .env.example .env
@@ -23,7 +23,7 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       PORT: 3000
-      SITE_NAME: ${SITE_NAME:-Ainme}
+      SITE_NAME: ${SITE_NAME:-OctoSensei}
       # Public origin (feeds, OG, Secure cookies when https://)
       APP_URL: ${APP_URL:-http://localhost:8080}
       # Must be ≥24 random chars in production (app refuses weak defaults)

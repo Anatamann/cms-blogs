@@ -1,6 +1,6 @@
 # How to create a successful post (Admin panel)
 
-This guide walks through writing and publishing a post in **Ainme Blog** from the admin CMS: login, fields, media, Markdown, preview, and publish.
+This guide walks through writing and publishing a post in **OctoSensei** from the admin CMS: login, fields, media, Markdown, preview, and publish.
 
 ---
 

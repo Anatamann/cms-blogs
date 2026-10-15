@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Backup SQLite DB + uploads for Ainme Blog.
+# Backup SQLite DB + uploads for OctoSensei.
 # Usage:
 #   ./scripts/backup.sh
 #   BACKUP_DIR=/var/backups/ainme ./scripts/backup.sh

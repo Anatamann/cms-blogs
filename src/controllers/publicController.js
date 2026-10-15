@@ -35,7 +35,7 @@ function siteMeta() {
     siteTitle: all.site_title || config.siteName,
     siteDescription:
       all.site_description ||
-      'Ainme — Anime in Me. Reviews, recaps, and deep cuts for millennial fans: Berserk to DBZ, Eva to AoT, drama nights to cultured late-night rewatches.',
+      'OctoSensei — Reviews, recaps, and deep cuts for millennial fans: Berserk to DBZ, Eva to AoT, drama nights to cultured late-night rewatches.',
     postsPerPage: Math.min(50, Math.max(1, Number(all.posts_per_page) || 10)),
   };
 }
@@ -179,7 +179,7 @@ function home(req, res) {
   });
 
   res.render('pages/home', {
-    title: '', // brand only in <title> (avoid "Ainme · Ainme")
+    title: '', // brand only in <title> (avoid "OctoSensei · OctoSensei")
     metaDescription: meta.siteDescription,
     siteDescription: meta.siteDescription,
     canonicalUrl: absoluteUrl(config.appUrl, paths.home()),
@@ -635,7 +635,7 @@ function about(_req, res) {
 function contactGet(_req, res) {
   res.render('pages/contact', {
     title: 'Contact',
-    metaDescription: 'Tips, corrections, collabs, and watch recommendations for Ainme.',
+    metaDescription: 'Tips, corrections, collabs, and watch recommendations for OctoSensei.',
     sent: false,
     error: null,
     form: { name: '', email: '', message: '' },
@@ -651,7 +651,7 @@ function contactPost(req, res) {
   if (!name || !email || !message) {
     return res.status(400).render('pages/contact', {
       title: 'Contact',
-      metaDescription: 'Tips, corrections, collabs, and watch recommendations for Ainme.',
+      metaDescription: 'Tips, corrections, collabs, and watch recommendations for OctoSensei.',
       sent: false,
       error: 'Name, email, and message are all required — fill the form and try again.',
       form: { name, email, message },
@@ -662,7 +662,7 @@ function contactPost(req, res) {
   // Acknowledge only (no mail transport yet).
   res.render('pages/contact', {
     title: 'Contact',
-    metaDescription: 'Tips, corrections, collabs, and watch recommendations for Ainme.',
+    metaDescription: 'Tips, corrections, collabs, and watch recommendations for OctoSensei.',
     sent: true,
     error: null,
     form: { name: '', email: '', message: '' },

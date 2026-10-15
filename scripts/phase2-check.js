@@ -55,7 +55,7 @@ async function http() {
 
   const post = await get('/blog/welcome-to-ainme');
   assert(post.status === 200, 'GET /blog/welcome-to-ainme 200');
-  assert(post.text.includes('Welcome to Ainme') || post.text.includes('lightweight'), 'post body rendered');
+  assert(post.text.includes('Welcome to OctoSensei') || post.text.includes('Welcome to Ainme') || post.text.includes('lightweight'), 'post body rendered');
   assert(post.text.includes('application/ld+json') || post.text.includes('Article'), 'structured data or article markup');
 
   const draft = await get('/blog/work-in-progress-notes');

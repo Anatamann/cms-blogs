@@ -1,6 +1,6 @@
-# Deploy & operations — Ainme
+# Deploy & operations — OctoSensei
 
-Production deploy for **Ainme** (*Anime in Me*): Express app + SQLite + Nginx reverse proxy, all via Docker Compose.
+Production deploy for **OctoSensei**: Express app + SQLite + Nginx reverse proxy, all via Docker Compose.
 
 ## Architecture
 
@@ -43,7 +43,7 @@ cp .env.docker.example .env
 openssl rand -hex 32
 
 # 4. Edit .env
-#    SITE_NAME=Ainme
+#    SITE_NAME=OctoSensei
 #    APP_URL=https://your.domain          # public origin browsers use
 #    SESSION_SECRET=<from step 3>
 #    AUTO_SEED=true                       # first boot only
@@ -86,7 +86,7 @@ Set strong values before first boot. After content exists, leave `AUTO_SEED=true
 | `NODE_ENV` | yes | `production` for compose |
 | `SESSION_SECRET` | **yes** | ≥24 random chars; weak defaults are **rejected** at boot |
 | `APP_URL` | yes | Public origin (`https://ainme.example`) for RSS/OG/canonical |
-| `SITE_NAME` | no | Default `Ainme` |
+| `SITE_NAME` | no | Default `OctoSensei` |
 | `AUTO_SEED` | no | Default `false` in compose; use `true` once on empty DB |
 | `SEED_ADMIN_PASSWORD` | if seeding | Password for seed user `octopus` |
 | `NGINX_HTTP_PORT` | no | Host port mapped to Nginx (default `8080`) |

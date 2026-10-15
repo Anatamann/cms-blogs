@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# Ainme — production Node image (multi-stage)
+# OctoSensei — production Node image (multi-stage)
 # Build: docker compose build
 # Runtime user: non-root `ainme`
 

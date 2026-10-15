@@ -1,4 +1,4 @@
-# Categories vs tags — recommendation for Ainme Blog
+# Categories vs tags — recommendation for OctoSensei
 
 ## What the CSV actually is
 

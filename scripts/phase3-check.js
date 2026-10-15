@@ -210,7 +210,7 @@ async function http() {
 
     const body = new URLSearchParams({
       _csrf: csrf,
-      site_title: 'Ainme Blog',
+      site_title: 'OctoSensei Blog',
       site_description: 'Phase 3 settings check',
       posts_per_page: '10',
     });

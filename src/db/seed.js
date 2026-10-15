@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Seed / ensure production catalog for Ainme.
+ * Seed / ensure production catalog for OctoSensei.
  *
  * - Runs after migrations (getDb applies all src/db/migrations).
  * - Safe to re-run: fills missing users, taxonomy, settings, and catalog posts.
@@ -50,7 +50,7 @@ const OCTOPUS_USERNAME = 'octopus';
 const OCTOPUS_DISPLAY = 'Octopus Sensei';
 
 const SITE_DESCRIPTION =
-  'Ainme — Anime in Me. Reviews, recaps, and deep cuts for millennial fans: Berserk to DBZ, Eva to AoT, drama nights to cultured late-night rewatches.';
+  'OctoSensei — Reviews, recaps, and deep cuts for millennial fans: Berserk to DBZ, Eva to AoT, drama nights to cultured late-night rewatches.';
 
 function nowIso() {
   return new Date().toISOString();
@@ -150,7 +150,7 @@ function ensureUsers(db) {
   const ts = nowIso();
   const created = [];
   const octopusBio =
-    'Anime in Me since the CRT days. Classics, gut-punch drama, mecha, and the shows you can still talk about at 2 a.m.';
+    'OctoSensei since the CRT days. Classics, gut-punch drama, mecha, and the shows you can still talk about at 2 a.m.';
 
   let octopus = db.select().from(users).where(eq(users.username, OCTOPUS_USERNAME)).get();
   if (!octopus) {
@@ -285,7 +285,7 @@ function ensureTaxonomy(db) {
 }
 
 function ensureSettings(db) {
-  ensureSetting(db, 'site_title', config.siteName || 'Ainme');
+  ensureSetting(db, 'site_title', config.siteName || 'OctoSensei');
   ensureSetting(db, 'site_description', SITE_DESCRIPTION);
   ensureSetting(db, 'posts_per_page', '10');
 }

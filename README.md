@@ -1,6 +1,6 @@
-# Ainme
+# OctoSensei
 
-**Ainme** means *Anime in Me* — a lightweight anime blog and CMS for a small writing crew (one or two authors) who never really left the neon.
+**OctoSensei** — a lightweight anime blog and CMS for a small writing crew (one or two authors) who never really left the neon.
 
 Reviews, recaps, news, and deep cuts with a 90s / millennial retro-modern look: dark CRT vibes, clean slug URLs, and no heavy WordPress stack.
 
@@ -176,7 +176,7 @@ Copy **`.env.example`** (local) or **`.env.docker.example`** (Compose). Importan
 |----------|---------|
 | `SESSION_SECRET` | Cookie signing (required, strong in production) |
 | `APP_URL` | Public site origin (use `https://…` behind TLS) |
-| `SITE_NAME` | Brand name (default Ainme) |
+| `SITE_NAME` | Brand name (default OctoSensei) |
 | `SUPER_ADMIN_USERNAMES` | CMS logins that manage authors |
 | `SEED_ADMIN_PASSWORD` | First seed author password (private only) |
 | `AUTO_SEED` | Ensure sample catalog on boot |
