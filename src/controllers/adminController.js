@@ -10,6 +10,7 @@ const commentsService = require('../services/comments');
 const analyticsService = require('../services/analytics');
 const hyperlinksService = require('../services/hyperlinks');
 const adsService = require('../services/ads');
+const socialPostsService = require('../services/socialPosts');
 const { paths, slugify, isValidSlug } = require('../utils/slug');
 const { isValidId } = require('../utils/uuid');
 const {
@@ -1208,6 +1209,152 @@ function adDelete(req, res, next) {
   return res.redirect(paths.admin.ads());
 }
 
+// —— Social posts ——
+
+function socialList(_req, res) {
+  res.render('admin/social-list', {
+    title: 'Social Feed',
+    posts: socialPostsService.listAll(),
+    pins: socialPostsService.listHomePins(),
+    maxPins: socialPostsService.MAX_HOME_PINS,
+  });
+}
+
+function socialNewGet(_req, res) {
+  res.render('admin/social-form', {
+    title: 'New social post',
+    mode: 'create',
+    post: {
+      sourceUrl: '',
+      title: '',
+      description: '',
+      imageUrl: '',
+      aspectRatio: 'square',
+      status: 'active',
+      provider: 'generic',
+    },
+    error: null,
+  });
+}
+
+async function socialCreate(req, res) {
+  try {
+    const post = await socialPostsService.create({
+      sourceUrl: req.body.sourceUrl,
+      title: req.body.title,
+      description: req.body.description,
+      imageUrl: req.body.imageUrl,
+      aspectRatio: req.body.aspectRatio,
+      status: req.body.status,
+      provider: req.body.provider,
+      previewRaw: req.body.previewRaw,
+      sortOrder: req.body.sortOrder,
+    });
+    req.flash('ok', `Social post “${post.title || post.sourceUrl}” created.`);
+    return res.redirect(paths.admin.social());
+  } catch (err) {
+    return res.status(err.status || 400).render('admin/social-form', {
+      title: 'New social post',
+      mode: 'create',
+      post: {
+        sourceUrl: req.body.sourceUrl || '',
+        title: req.body.title || '',
+        description: req.body.description || '',
+        imageUrl: req.body.imageUrl || '',
+        aspectRatio: req.body.aspectRatio || 'square',
+        status: req.body.status === 'paused' ? 'paused' : 'active',
+        provider: req.body.provider || 'generic',
+      },
+      error: err.message || 'Could not create social post.',
+    });
+  }
+}
+
+function socialEditGet(req, res, next) {
+  const { id } = req.params;
+  if (!isValidId(id)) return next();
+  const post = socialPostsService.getById(id);
+  if (!post) return next();
+  res.render('admin/social-form', {
+    title: 'Edit social post',
+    mode: 'edit',
+    post,
+    error: null,
+  });
+}
+
+async function socialUpdate(req, res, next) {
+  const { id } = req.params;
+  if (!isValidId(id)) return next();
+  const existing = socialPostsService.getById(id);
+  if (!existing) return next();
+  try {
+    const post = await socialPostsService.update(id, {
+      sourceUrl: req.body.sourceUrl,
+      title: req.body.title,
+      description: req.body.description,
+      imageUrl: req.body.imageUrl,
+      aspectRatio: req.body.aspectRatio,
+      status: req.body.status,
+      provider: req.body.provider,
+      previewRaw: req.body.previewRaw,
+      sortOrder: req.body.sortOrder,
+    });
+    req.flash('ok', `Social post “${post.title || post.sourceUrl}” saved.`);
+    return res.redirect(paths.admin.social());
+  } catch (err) {
+    return res.status(err.status || 400).render('admin/social-form', {
+      title: 'Edit social post',
+      mode: 'edit',
+      post: {
+        ...existing,
+        sourceUrl: req.body.sourceUrl || '',
+        title: req.body.title || '',
+        description: req.body.description || '',
+        imageUrl: req.body.imageUrl || '',
+        aspectRatio: req.body.aspectRatio || 'square',
+        status: req.body.status === 'paused' ? 'paused' : 'active',
+        provider: req.body.provider || existing.provider,
+      },
+      error: err.message || 'Could not update social post.',
+    });
+  }
+}
+
+function socialDelete(req, res, next) {
+  const { id } = req.params;
+  if (!isValidId(id)) return next();
+  const existing = socialPostsService.getById(id);
+  if (!existing) return next();
+  socialPostsService.remove(id);
+  req.flash('ok', 'Social post deleted.');
+  return res.redirect(paths.admin.social());
+}
+
+async function socialFetchPreview(req, res) {
+  try {
+    const preview = await socialPostsService.previewFromUrl(req.body.url || req.body.sourceUrl);
+    return res.json({ ok: true, preview });
+  } catch (err) {
+    return res.status(err.status || 400).json({
+      ok: false,
+      error: err.message || 'Preview fetch failed',
+    });
+  }
+}
+
+function socialPinsSave(req, res) {
+  try {
+    const raw = req.body.pinIds;
+    const ids = Array.isArray(raw) ? raw : raw != null && raw !== '' ? [raw] : [];
+    socialPostsService.setHomePins(ids);
+    req.flash('ok', 'Home carousel pins saved.');
+  } catch (err) {
+    req.flash('error', err.message || 'Could not save pins.');
+  }
+  return res.redirect(paths.admin.social());
+}
+
 module.exports = {
   loginForm,
   loginSubmit,
@@ -1231,6 +1378,14 @@ module.exports = {
   adEditGet,
   adUpdate,
   adDelete,
+  socialList,
+  socialNewGet,
+  socialCreate,
+  socialEditGet,
+  socialUpdate,
+  socialDelete,
+  socialFetchPreview,
+  socialPinsSave,
   settingsGet,
   settingsPost,
   authorsList,

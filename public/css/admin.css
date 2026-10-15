@@ -882,3 +882,50 @@
   font-size: 0.75rem;
   color: var(--muted);
 }
+
+/* Social admin */
+.social-pin-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.social-pin-list select {
+  width: 100%;
+}
+
+.social-form-preview {
+  margin-top: 0.75rem;
+  max-width: 320px;
+}
+
+.social-form-preview__frame {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.social-form-preview__frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  aspect-ratio: 1 / 1;
+}
+
+.social-form-preview__frame.social-card--wide img {
+  aspect-ratio: 19 / 6;
+}
+
+.social-form-preview__frame.social-card--tall img {
+  aspect-ratio: 6 / 19;
+  max-height: 280px;
+}
+
+.social-form-preview__meta {
+  padding: 0.5rem 0.65rem;
+  font-size: 0.85rem;
+}

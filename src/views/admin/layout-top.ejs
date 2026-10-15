@@ -24,6 +24,7 @@
         <a href="<%= paths.admin.comments() %>" <%= typeof currentPath !== 'undefined' && currentPath.indexOf('/mantri/comments') === 0 ? 'aria-current="page"' : '' %>>Comments</a>
         <a href="<%= paths.admin.media() %>" <%= typeof currentPath !== 'undefined' && currentPath.indexOf('/mantri/media') === 0 ? 'aria-current="page"' : '' %>>Media</a>
         <a href="<%= paths.admin.ads() %>" <%= typeof currentPath !== 'undefined' && currentPath.indexOf('/mantri/ads') === 0 ? 'aria-current="page"' : '' %>>Ads</a>
+        <a href="<%= paths.admin.social() %>" <%= typeof currentPath !== 'undefined' && currentPath.indexOf('/mantri/social') === 0 ? 'aria-current="page"' : '' %>>Social Feed</a>
         <a href="<%= paths.admin.analytics() %>" <%= typeof currentPath !== 'undefined' && currentPath.indexOf('/mantri/analytics') === 0 ? 'aria-current="page"' : '' %>>Analytics</a>
         <% if (typeof isSuperAdmin !== 'undefined' && isSuperAdmin) { %>
         <a href="<%= paths.admin.authors() %>" <%= typeof currentPath !== 'undefined' && currentPath.indexOf('/mantri/authors') === 0 ? 'aria-current="page"' : '' %>>Authors</a>

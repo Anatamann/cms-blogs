@@ -1,0 +1,191 @@
+<%- include('layout-top') %>
+
+<header class="admin-page-header">
+  <h1><%= mode === 'create' ? 'New social post' : 'Edit social post' %></h1>
+  <p class="lead">Paste a link to fetch a preview, or fill title / image manually. Card size is required.</p>
+</header>
+
+<% if (error) { %>
+<p class="flash flash-error" role="alert"><%= error %></p>
+<% } %>
+
+<form
+  method="post"
+  action="<%= mode === 'create' ? paths.admin.social() : paths.admin.socialEdit(post.id) %>"
+  class="admin-form"
+  data-social-form
+>
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+  <input type="hidden" name="previewRaw" id="previewRaw" value="" />
+  <input type="hidden" name="provider" id="provider" value="<%= post.provider || 'generic' %>" />
+
+  <div class="field">
+    <label for="sourceUrl">Source URL</label>
+    <div class="admin-actions" style="align-items:flex-end;gap:0.5rem;flex-wrap:wrap">
+      <input id="sourceUrl" name="sourceUrl" type="url" required maxlength="1000" value="<%= post.sourceUrl || '' %>" placeholder="https://youtube.com/… or https://x.com/… or any URL" style="flex:1;min-width:220px" />
+      <button type="button" class="btn btn-ghost" data-fetch-preview>Fetch preview</button>
+    </div>
+    <p class="field-hint" data-fetch-status></p>
+  </div>
+
+  <div class="field">
+    <span class="label-text">Card size <span class="muted">(required)</span></span>
+    <div class="radio-row social-aspect-picker" data-aspect-picker>
+      <label>
+        <input type="radio" name="aspectRatio" value="wide" <%= post.aspectRatio === 'wide' ? 'checked' : '' %> required />
+        Wide 19:6
+      </label>
+      <label>
+        <input type="radio" name="aspectRatio" value="square" <%= (!post.aspectRatio || post.aspectRatio === 'square') ? 'checked' : '' %> required />
+        Square 1:1
+      </label>
+      <label>
+        <input type="radio" name="aspectRatio" value="tall" <%= post.aspectRatio === 'tall' ? 'checked' : '' %> required />
+        Tall 6:19
+      </label>
+    </div>
+    <div class="social-form-preview" data-aspect-preview>
+      <div class="social-form-preview__frame social-card--<%= post.aspectRatio || 'square' %>" data-aspect-frame>
+        <img data-preview-img src="<%= post.cachedImagePath || post.imageUrl || '' %>" alt="" <%= (post.cachedImagePath || post.imageUrl) ? '' : 'hidden' %> />
+        <div class="social-form-preview__meta">
+          <strong data-preview-title><%= post.title || 'Preview title' %></strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="title">Title</label>
+    <input id="title" name="title" type="text" maxlength="300" value="<%= post.title || '' %>" />
+  </div>
+
+  <div class="field">
+    <label for="description">Description</label>
+    <textarea id="description" name="description" rows="3" maxlength="1000"><%= post.description || '' %></textarea>
+  </div>
+
+  <div class="field">
+    <label for="imageUrl">Image URL</label>
+    <input id="imageUrl" name="imageUrl" type="text" maxlength="1000" value="<%= post.imageUrl || '' %>" placeholder="https://… or /uploads/…" />
+    <p class="field-hint">Fetched images are cached under /uploads/social-cache/ on save.</p>
+  </div>
+
+  <div class="field">
+    <span class="label-text">Status</span>
+    <div class="radio-row">
+      <label>
+        <input type="radio" name="status" value="active" <%= (post.status || 'active') === 'active' ? 'checked' : '' %> />
+        Active
+      </label>
+      <label>
+        <input type="radio" name="status" value="paused" <%= post.status === 'paused' ? 'checked' : '' %> />
+        Paused
+      </label>
+    </div>
+  </div>
+
+  <div class="admin-actions">
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a class="btn btn-ghost" href="<%= paths.admin.social() %>">Cancel</a>
+  </div>
+</form>
+
+<% if (mode === 'edit') { %>
+<form method="post" action="<%= paths.admin.socialDelete(post.id) %>" class="admin-danger" onsubmit="return confirm('Delete this social post permanently?');">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+  <button type="submit" class="btn btn-danger">Delete</button>
+</form>
+<% } %>
+
+<script>
+(function () {
+  var form = document.querySelector('[data-social-form]');
+  if (!form) return;
+  var csrf = form.querySelector('input[name="_csrf"]').value;
+  var statusEl = form.querySelector('[data-fetch-status]');
+  var frame = form.querySelector('[data-aspect-frame]');
+  var previewImg = form.querySelector('[data-preview-img]');
+  var previewTitle = form.querySelector('[data-preview-title]');
+
+  function syncAspect() {
+    var checked = form.querySelector('input[name="aspectRatio"]:checked');
+    var ratio = checked ? checked.value : 'square';
+    if (!frame) return;
+    frame.classList.remove('social-card--wide', 'social-card--square', 'social-card--tall');
+    frame.classList.add('social-card--' + ratio);
+  }
+
+  form.querySelectorAll('input[name="aspectRatio"]').forEach(function (r) {
+    r.addEventListener('change', syncAspect);
+  });
+
+  form.querySelector('#title').addEventListener('input', function () {
+    if (previewTitle) previewTitle.textContent = this.value || 'Preview title';
+  });
+  form.querySelector('#imageUrl').addEventListener('input', function () {
+    if (!previewImg) return;
+    if (this.value) {
+      previewImg.src = this.value;
+      previewImg.hidden = false;
+    } else {
+      previewImg.hidden = true;
+    }
+  });
+
+  var fetchBtn = form.querySelector('[data-fetch-preview]');
+  if (fetchBtn) {
+    fetchBtn.addEventListener('click', function () {
+      var url = form.querySelector('#sourceUrl').value.trim();
+      if (!url) {
+        statusEl.textContent = 'Enter a URL first.';
+        return;
+      }
+      statusEl.textContent = 'Fetching…';
+      fetchBtn.disabled = true;
+      fetch('<%= paths.admin.socialFetchPreview() %>', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'CSRF-Token': csrf,
+        },
+        body: JSON.stringify({ url: url, _csrf: csrf }),
+      })
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+        .then(function (res) {
+          fetchBtn.disabled = false;
+          if (!res.ok || !res.j.ok) {
+            statusEl.textContent = (res.j && res.j.error) || 'Fetch failed — fill fields manually.';
+            return;
+          }
+          var p = res.j.preview || {};
+          form.querySelector('#title').value = p.title || '';
+          form.querySelector('#description').value = p.description || '';
+          form.querySelector('#imageUrl').value = p.imageUrl || '';
+          form.querySelector('#provider').value = p.provider || 'generic';
+          form.querySelector('#previewRaw').value = p.previewRaw || '';
+          if (previewTitle) previewTitle.textContent = p.title || 'Preview title';
+          if (previewImg) {
+            if (p.imageUrl) {
+              previewImg.src = p.imageUrl;
+              previewImg.hidden = false;
+            } else {
+              previewImg.hidden = true;
+            }
+          }
+          statusEl.textContent = p.title || p.imageUrl
+            ? 'Preview loaded — adjust size and save.'
+            : 'No Open Graph tags found — fill title/image manually.';
+        })
+        .catch(function () {
+          fetchBtn.disabled = false;
+          statusEl.textContent = 'Fetch failed — fill fields manually.';
+        });
+    });
+  }
+
+  syncAspect();
+})();
+</script>
+
+<%- include('layout-bottom') %>

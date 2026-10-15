@@ -65,6 +65,28 @@
       </aside>
     </div>
 
+    <% if (typeof socialCarousel !== 'undefined' && socialCarousel && socialCarousel.length) { %>
+    <section class="wrap home-scroll__panel home-social" aria-labelledby="home-social-heading">
+      <h2 id="home-social-heading" class="section-title">From the social feed</h2>
+      <div class="social-carousel-shell" data-carousel-shell>
+        <div class="social-carousel" data-social-carousel tabindex="0">
+          <% socialCarousel.forEach(function (post) { %>
+            <div class="social-carousel__item">
+              <%- include('../partials/social-card', { post: post }) %>
+            </div>
+          <% }) %>
+        </div>
+        <div class="social-carousel__fade social-carousel__fade--left" data-carousel-fade-left aria-hidden="true"></div>
+        <div class="social-carousel__fade social-carousel__fade--right" data-carousel-fade-right aria-hidden="true"></div>
+        <button type="button" class="social-carousel__btn social-carousel__btn--prev" data-carousel-prev aria-label="Previous social posts">‹</button>
+        <button type="button" class="social-carousel__btn social-carousel__btn--next" data-carousel-next aria-label="Next social posts">›</button>
+      </div>
+      <p class="section-more">
+        <a class="btn btn-ghost" href="<%= paths.social() %>">Social Feed →</a>
+      </p>
+    </section>
+    <% } %>
+
     <section class="wrap home-scroll__outro home-scroll__panel" aria-label="More from the site">
       <h2 class="section-title">Still got time on the VHS?</h2>
       <p class="lead">
@@ -72,7 +94,7 @@
       </p>
       <div class="hero-actions">
         <a class="btn btn-primary" href="<%= paths.archive() %>">Archive</a>
-        <a class="btn btn-ghost" href="<%= paths.search() %>">Search</a>
+        <a class="btn btn-ghost" href="<%= paths.social() %>">Social Feed</a>
         <a class="btn btn-ghost" href="<%= paths.about() %>">About us</a>
       </div>
     </section>

@@ -110,6 +110,20 @@ router.get('/ads/:id/edit', adminController.adEditGet);
 router.post('/ads/:id/edit', writeLimiter, verifyCsrf, adminController.adUpdate);
 router.post('/ads/:id/delete', writeLimiter, verifyCsrf, adminController.adDelete);
 
+router.get('/social', adminController.socialList);
+router.get('/social/new', adminController.socialNewGet);
+router.post('/social', writeLimiter, verifyCsrf, adminController.socialCreate);
+router.post(
+  '/social/fetch-preview',
+  writeLimiter,
+  verifyCsrf,
+  adminController.socialFetchPreview
+);
+router.post('/social/pins', writeLimiter, verifyCsrf, adminController.socialPinsSave);
+router.get('/social/:id/edit', adminController.socialEditGet);
+router.post('/social/:id/edit', writeLimiter, verifyCsrf, adminController.socialUpdate);
+router.post('/social/:id/delete', writeLimiter, verifyCsrf, adminController.socialDelete);
+
 router.get('/tags', adminController.tagsList);
 router.get('/tags/new', adminController.tagNewGet);
 router.post('/tags', writeLimiter, verifyCsrf, adminController.tagCreate);

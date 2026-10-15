@@ -46,6 +46,7 @@ RUN test -f src/db/migrations/0000_initial.sql \
   && test -f src/db/migrations/0009_post_hyperlinks.sql \
   && test -f src/db/migrations/0010_ads.sql \
   && test -f src/db/migrations/0011_category_slugs.sql \
+  && test -f src/db/migrations/0012_social_posts.sql \
   && ls src/db/migrations/*.sql
 
 # Persist DB + uploads via volumes; seed dirs exist even before mount

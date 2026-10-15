@@ -26,6 +26,7 @@ router.get('/category/:slug', publicController.categoryLegacyRedirect);
 router.get('/tag/:slug', publicController.tagArchive);
 router.get('/work/:slug', publicController.workArchive);
 router.get(paths.search(), publicController.search);
+router.get(paths.social(), publicController.socialPage);
 router.get(paths.archive(), publicController.archive);
 router.get(paths.about(), publicController.about);
 router.get(paths.contact(), publicController.contactGet);

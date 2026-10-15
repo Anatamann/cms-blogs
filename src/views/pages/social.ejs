@@ -1,0 +1,20 @@
+<%- include('../partials/header') %>
+
+<div class="wrap social-page" data-social-page>
+  <header class="page-header">
+    <h1>Social Feed</h1>
+    <p class="lead">Clips, threads, and links from the feed — open any card to view the original.</p>
+  </header>
+
+  <% if (!posts || !posts.length) { %>
+  <p class="lead muted">Nothing pinned on the social shelf yet. Check back soon.</p>
+  <% } else { %>
+  <div class="social-grid" data-social-grid>
+    <% posts.forEach(function (post) { %>
+      <%- include('../partials/social-card', { post: post }) %>
+    <% }) %>
+  </div>
+  <% } %>
+</div>
+
+<%- include('../partials/footer') %>

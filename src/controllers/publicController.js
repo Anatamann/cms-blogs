@@ -25,6 +25,7 @@ const {
 } = require('../utils/markdown');
 const hyperlinksService = require('../services/hyperlinks');
 const adsService = require('../services/ads');
+const socialPostsService = require('../services/socialPosts');
 const { formatDate, escapeXml, absoluteUrl } = require('../utils/format');
 const { ensureVisitorKey } = require('../utils/visitor');
 const analyticsService = require('../services/analytics');
@@ -175,8 +176,13 @@ function home(req, res) {
   const latest = postsService.listPosts({
     status: 'published',
     page: 1,
-    limit: 6,
+    limit: 5,
   });
+  const socialCarousel = socialPostsService
+    .listHomeCarousel()
+    .map((p) => socialPostsService.presentCard(p));
+  const pageScripts = ['/js/home-scroll.js'];
+  if (socialCarousel.length) pageScripts.push('/js/social-carousel.js?v=4');
 
   res.render('pages/home', {
     title: '', // brand only in <title> (avoid "OctoSensei · OctoSensei")
@@ -185,7 +191,22 @@ function home(req, res) {
     canonicalUrl: absoluteUrl(config.appUrl, paths.home()),
     ogImage: resolveOgImage(null),
     posts: latest.items.map(presentPostCard),
-    pageScripts: ['/js/home-scroll.js'],
+    socialCarousel,
+    pageScripts,
+    ...sidebarData(),
+  });
+}
+
+function socialPage(_req, res) {
+  const meta = siteMeta();
+  const posts = socialPostsService.listActive().map((p) => socialPostsService.presentCard(p));
+  res.render('pages/social', {
+    title: 'Social Feed',
+    metaDescription: 'Social clips and links from OctoSensei.',
+    canonicalUrl: absoluteUrl(config.appUrl, paths.social()),
+    ogImage: resolveOgImage(null),
+    posts,
+    pageScripts: ['/js/social-parallax.js'],
     ...sidebarData(),
   });
 }
@@ -720,6 +741,7 @@ function sitemap(_req, res) {
   const staticPaths = [
     paths.home(),
     paths.blog(),
+    paths.social(),
     paths.archive(),
     paths.about(),
     paths.contact(),
@@ -760,6 +782,7 @@ module.exports = {
   categoryLegacyRedirect,
   tagArchive,
   search,
+  socialPage,
   archive,
   about,
   contactGet,

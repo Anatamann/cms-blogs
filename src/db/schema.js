@@ -326,6 +326,57 @@ const postAdPlacements = sqliteTable(
   })
 );
 
+/**
+ * Social / OG link cards (YouTube, X, any URL).
+ * aspect_ratio: wide (19:6) | square (1:1) | tall (6:19)
+ */
+const socialPosts = sqliteTable(
+  'social_posts',
+  {
+    id: text('id').primaryKey().notNull(),
+    sourceUrl: text('source_url').notNull(),
+    title: text('title').notNull().default(''),
+    description: text('description').notNull().default(''),
+    imageUrl: text('image_url').notNull().default(''),
+    cachedImagePath: text('cached_image_path').notNull().default(''),
+    provider: text('provider').notNull().default('generic'),
+    aspectRatio: text('aspect_ratio').notNull().default('square'),
+    status: text('status').notNull().default('active'),
+    previewFetchedAt: text('preview_fetched_at'),
+    previewRaw: text('preview_raw').notNull().default(''),
+    sortOrder: integer('sort_order').notNull().default(0),
+    createdAt: text('created_at')
+      .notNull()
+      .default(sql`(datetime('now'))`),
+    updatedAt: text('updated_at')
+      .notNull()
+      .default(sql`(datetime('now'))`),
+  },
+  (t) => ({
+    statusIdx: index('social_posts_status_idx').on(t.status),
+    sortIdx: index('social_posts_sort_order_idx').on(t.sortOrder),
+  })
+);
+
+/** Home page carousel pins (max 10 enforced in service). */
+const socialHomePins = sqliteTable(
+  'social_home_pins',
+  {
+    id: text('id').primaryKey().notNull(),
+    socialPostId: text('social_post_id')
+      .notNull()
+      .references(() => socialPosts.id, { onDelete: 'cascade' }),
+    sortOrder: integer('sort_order').notNull().default(0),
+    createdAt: text('created_at')
+      .notNull()
+      .default(sql`(datetime('now'))`),
+  },
+  (t) => ({
+    postUq: uniqueIndex('social_home_pins_post_uq').on(t.socialPostId),
+    sortIdx: index('social_home_pins_sort_idx').on(t.sortOrder),
+  })
+);
+
 module.exports = {
   users,
   posts,
@@ -341,4 +392,6 @@ module.exports = {
   postHyperlinks,
   ads,
   postAdPlacements,
+  socialPosts,
+  socialHomePins,
 };

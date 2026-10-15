@@ -1,0 +1,34 @@
+<%
+  var card = typeof post !== 'undefined' ? post : null;
+  if (!card) { /* skip */ } else {
+    var img = card.displayImage || card.cachedImagePath || card.imageUrl || '';
+    var aspect = card.aspectClass || (
+      card.aspectRatio === 'wide' ? 'social-card--wide' :
+      card.aspectRatio === 'tall' ? 'social-card--tall' : 'social-card--square'
+    );
+%>
+<a
+  class="social-card <%= aspect %>"
+  href="<%= card.sourceUrl %>"
+  target="_blank"
+  rel="noopener noreferrer"
+  data-social-card
+>
+  <div class="social-card__media">
+    <% if (img) { %>
+    <img src="<%= img %>" alt="" loading="lazy" decoding="async" />
+    <% } else { %>
+    <div class="social-card__placeholder" aria-hidden="true"></div>
+    <% } %>
+  </div>
+  <div class="social-card__body">
+    <% if (card.provider && card.provider !== 'generic') { %>
+    <span class="social-card__provider"><%= card.provider === 'x' ? 'X' : (card.provider === 'youtube' ? 'YouTube' : card.provider) %></span>
+    <% } %>
+    <span class="social-card__title"><%= card.title || card.sourceUrl %></span>
+    <% if (card.description) { %>
+    <span class="social-card__desc"><%= card.description %></span>
+    <% } %>
+  </div>
+</a>
+<% } %>

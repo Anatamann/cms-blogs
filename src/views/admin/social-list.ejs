@@ -1,0 +1,97 @@
+<%- include('layout-top') %>
+
+<header class="admin-page-header admin-page-header--row">
+  <div>
+    <h1>Social Feed</h1>
+    <p class="lead">
+      Link previews for YouTube, X, and any URL. Pin up to <%= maxPins %> for the home carousel.
+      <%= posts.length %> post<%= posts.length === 1 ? '' : 's' %>.
+    </p>
+  </div>
+  <div class="admin-actions">
+    <a class="btn btn-primary" href="<%= paths.admin.socialNew() %>">New social post</a>
+    <a class="btn btn-ghost" href="<%= paths.social() %>" target="_blank" rel="noopener">View page</a>
+  </div>
+</header>
+
+<section class="card" style="margin-bottom:1.5rem">
+  <h2 class="section-title">Home carousel pins</h2>
+  <p class="field-hint">Select up to <%= maxPins %> active posts and set order (top = first in the carousel).</p>
+  <form method="post" action="<%= paths.admin.socialPins() %>" class="admin-form">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+    <%
+      var pinnedIds = (pins || []).map(function (p) { return p.socialPostId; });
+      var active = (posts || []).filter(function (p) { return p.status === 'active'; });
+    %>
+    <% if (!active.length) { %>
+    <p class="muted">Create an active social post first.</p>
+    <% } else { %>
+    <ol class="social-pin-list">
+      <% for (var i = 0; i < maxPins; i++) {
+        var selected = pinnedIds[i] || '';
+      %>
+      <li>
+        <label class="field-sub">Slot <%= i + 1 %></label>
+        <select name="pinIds">
+          <option value="">— Empty —</option>
+          <% active.forEach(function (p) { %>
+          <option value="<%= p.id %>" <%= selected === p.id ? 'selected' : '' %>>
+            <%= p.title || p.sourceUrl %> (<%= p.aspectRatio %>)
+          </option>
+          <% }) %>
+        </select>
+      </li>
+      <% } %>
+    </ol>
+    <button type="submit" class="btn btn-primary" style="margin-top:0.75rem">Save home pins</button>
+    <% } %>
+  </form>
+</section>
+
+<% if (!posts.length) { %>
+<p class="muted">No social posts yet.</p>
+<% } else { %>
+<table class="admin-table">
+  <thead>
+    <tr>
+      <th>Preview</th>
+      <th>Title / URL</th>
+      <th>Size</th>
+      <th>Status</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% posts.forEach(function (p) {
+      var img = p.cachedImagePath || p.imageUrl;
+    %>
+    <tr>
+      <td>
+        <% if (img) { %>
+        <img src="<%= img %>" alt="" style="width:72px;height:48px;object-fit:cover;border-radius:3px" />
+        <% } else { %>
+        <span class="muted">—</span>
+        <% } %>
+      </td>
+      <td>
+        <strong><%= p.title || '(untitled)' %></strong>
+        <div class="muted" style="font-size:0.8rem;word-break:break-all"><%= p.sourceUrl %></div>
+        <span class="chip"><%= p.provider %></span>
+      </td>
+      <td class="muted"><%= p.aspectRatio %></td>
+      <td class="muted"><%= p.status %></td>
+      <td class="admin-row-actions">
+        <a href="<%= paths.admin.socialEdit(p.id) %>">Edit</a>
+        ·
+        <form method="post" action="<%= paths.admin.socialDelete(p.id) %>" style="display:inline" onsubmit="return confirm('Delete this social post?');">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+          <button type="submit" class="linkish-danger">Delete</button>
+        </form>
+      </td>
+    </tr>
+    <% }) %>
+  </tbody>
+</table>
+<% } %>
+
+<%- include('layout-bottom') %>

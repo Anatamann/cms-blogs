@@ -52,3 +52,7 @@ coverage/
 dist/
 tmp/
 .cache/
+
+# Social preview image cache (local)
+public/uploads/social-cache/*
+!public/uploads/social-cache/.gitkeep

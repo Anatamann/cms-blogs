@@ -85,6 +85,13 @@
       "when": 1721400000011,
       "tag": "0011_category_slugs",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1721400000012,
+      "tag": "0012_social_posts",
+      "breakpoints": true
     }
   ]
 }
