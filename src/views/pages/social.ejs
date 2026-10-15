@@ -9,7 +9,7 @@
   <% if (!posts || !posts.length) { %>
   <p class="lead muted">Nothing pinned on the social shelf yet. Check back soon.</p>
   <% } else { %>
-  <div class="social-grid" data-social-grid>
+  <div class="social-grid social-grid--plain" data-social-grid>
     <% posts.forEach(function (post) { %>
       <%- include('../partials/social-card', { post: post }) %>
     <% }) %>

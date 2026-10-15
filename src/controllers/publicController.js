@@ -206,7 +206,7 @@ function socialPage(_req, res) {
     canonicalUrl: absoluteUrl(config.appUrl, paths.social()),
     ogImage: resolveOgImage(null),
     posts,
-    pageScripts: ['/js/social-parallax.js'],
+    pageScripts: ['/js/social-columns.js?v=3'],
     ...sidebarData(),
   });
 }

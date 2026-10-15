@@ -1700,11 +1700,91 @@ body.has-post-scroll .site-footer {
   padding-bottom: 3rem;
 }
 
+/* Social Feed lanes: each column drifts at its own speed; page still scrolls */
+.social-page {
+  overflow: visible;
+}
+
 .social-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  display: flex;
+  align-items: stretch;
   gap: 1.25rem;
-  align-items: start;
+  margin-bottom: 2rem;
+}
+
+.social-grid--plain {
+  flex-direction: column;
+}
+
+.social-grid--plain .social-card {
+  margin: 0 0 1.25rem;
+}
+
+.social-col {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  /* Tall enough to read, page remains scrollable around this block */
+  height: clamp(420px, 72vh, 900px);
+  overflow: hidden;
+  border-radius: var(--radius);
+}
+
+.social-col__fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3rem;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.social-col__fade--top {
+  top: 0;
+  background: linear-gradient(
+    to bottom,
+    var(--bg, #0a0a0f) 0%,
+    rgba(10, 10, 15, 0.8) 45%,
+    rgba(10, 10, 15, 0) 100%
+  );
+}
+
+.social-col__fade--bottom {
+  bottom: 0;
+  background: linear-gradient(
+    to top,
+    var(--bg, #0a0a0f) 0%,
+    rgba(10, 10, 15, 0.8) 45%,
+    rgba(10, 10, 15, 0) 100%
+  );
+}
+
+.social-col__track {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  will-change: transform;
+}
+
+.social-col__track .social-card {
+  flex-shrink: 0;
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .social-col {
+    height: clamp(380px, 68vh, 760px);
+  }
+}
+
+@media (max-width: 600px) {
+  .social-grid {
+    flex-direction: column;
+  }
+
+  .social-col {
+    height: clamp(360px, 64vh, 640px);
+  }
 }
 
 .social-card {
